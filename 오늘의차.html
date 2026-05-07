@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>오늘의 차</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans KR', system-ui, sans-serif;
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+      transition: background 1.8s ease;
+    }
+
+    /* ── 시간대별 테마 (연한 녹색 계열) ── */
+    body.morning {
+      background: linear-gradient(155deg, #f0faf0 0%, #d4f0d4 45%, #a8dca8 100%);
+      --text: #1a3a1a; --sub: #4a7a4a; --subsub: #6a9a6a;
+      --card: rgba(255,255,255,0.54); --card-b: rgba(255,255,255,0.78);
+      --active: #2e7a2e; --active-t: #fff;
+      --pill: rgba(255,255,255,0.56); --pill-h: rgba(255,255,255,0.76);
+      --shadow: rgba(30,90,30,0.14); --dot-off: rgba(46,122,46,0.2);
+    }
+    body.afternoon {
+      background: linear-gradient(155deg, #f4fbf4 0%, #c8e8c8 45%, #8cca8c 100%);
+      --text: #142814; --sub: #3a6a3a; --subsub: #5a8a5a;
+      --card: rgba(255,255,255,0.50); --card-b: rgba(255,255,255,0.74);
+      --active: #257025; --active-t: #fff;
+      --pill: rgba(255,255,255,0.52); --pill-h: rgba(255,255,255,0.72);
+      --shadow: rgba(25,85,25,0.13); --dot-off: rgba(37,112,37,0.2);
+    }
+    body.evening {
+      background: linear-gradient(155deg, #eef8ee 0%, #c0e0c0 45%, #7ab87a 100%);
+      --text: #102010; --sub: #386038; --subsub: #587858;
+      --card: rgba(255,255,255,0.40); --card-b: rgba(255,255,255,0.62);
+      --active: #2e6a2e; --active-t: #fff;
+      --pill: rgba(255,255,255,0.44); --pill-h: rgba(255,255,255,0.62);
+      --shadow: rgba(20,80,20,0.16); --dot-off: rgba(46,106,46,0.2);
+    }
+    body.night {
+      background: linear-gradient(155deg, #080e08 0%, #101e10 50%, #182814 100%);
+      --text: #c8e8c8; --sub: #78a878; --subsub: #98c898;
+      --card: rgba(255,255,255,0.07); --card-b: rgba(255,255,255,0.13);
+      --active: #3a7a3a; --active-t: #fff;
+      --pill: rgba(255,255,255,0.09); --pill-h: rgba(255,255,255,0.16);
+      --shadow: rgba(10,60,10,0.3); --dot-off: rgba(58,122,58,0.25);
+    }
+
+    /* ── 레이아웃 ── */
+    .wrap { min-height: 100vh; padding-bottom: 72px; }
+    .container { max-width: 540px; margin: 0 auto; padding: 0 18px; }
+
+    /* ── 헤더 ── */
+    .hdr { padding: 52px 18px 20px; text-align: center; }
+    .hdr-time {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--sub); margin-bottom: 14px; font-weight: 400;
+    }
+    .hdr-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(30px, 8.5vw, 46px); font-weight: 600;
+      color: var(--text); line-height: 1.15; margin-bottom: 10px;
+    }
+    .hdr-sub { font-size: 14px; font-weight: 300; color: var(--sub); line-height: 1.75; }
+
+    /* ── 진행 표시 ── */
+    .progress-wrap { padding: 24px 18px 8px; display: flex; justify-content: center; gap: 6px; align-items: center; }
+    .pdot {
+      height: 5px; border-radius: 3px; background: var(--dot-off);
+      transition: all .4s cubic-bezier(.4,0,.2,1);
+      width: 20px;
+    }
+    .pdot.done { background: var(--active); width: 32px; }
+    .pdot.active { background: var(--active); opacity: .5; }
+    .prog-label {
+      font-size: 11px; color: var(--sub); letter-spacing: .1em;
+      margin-left: 10px; font-weight: 400;
+    }
+
+    /* ── 선택 카드 ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-b);
+      border-radius: 22px;
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      padding: 20px 18px 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 24px var(--shadow);
+      transition: box-shadow .3s;
+    }
+    .card.filled { box-shadow: 0 4px 24px var(--shadow), inset 0 0 0 1.5px var(--active); }
+    .card-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .card-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      background: var(--active); color: var(--active-t);
+      font-size: 11px; font-weight: 600;
+    }
+    .card-num.done { background: var(--active); opacity: 1; }
+    .card-lbl {
+      font-size: 12px; font-weight: 500; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--sub);
+    }
+    .card-sel {
+      font-size: 12px; font-weight: 400; color: var(--active);
+      margin-left: auto; opacity: 0; transition: opacity .3s;
+    }
+    .card.filled .card-sel { opacity: 1; }
+
+    /* ── 옵션 버튼 ── */
+    .opts { display: flex; flex-wrap: wrap; gap: 7px; }
+    .opt {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 9px 15px; border-radius: 50px;
+      border: 1.5px solid var(--card-b);
+      background: var(--pill); color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13.5px; cursor: pointer;
+      transition: all .2s ease; -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .opt:hover { background: var(--pill-h); transform: translateY(-1px); }
+    .opt:active { transform: scale(.95); }
+    .opt.on {
+      background: var(--active); border-color: var(--active);
+      color: var(--active-t); font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      transform: translateY(-1px);
+    }
+    .opt-ic { font-size: 15px; line-height: 1; }
+
+    /* ── CTA ── */
+    .cta-wrap { padding: 6px 18px 0; }
+    .cta {
+      width: 100%; padding: 18px; border-radius: 16px; border: none;
+      background: var(--active); color: #fff;
+      font-family: 'Noto Serif KR', serif; font-size: 17px; font-weight: 600;
+      letter-spacing: .04em; cursor: pointer;
+      transition: all .25s; box-shadow: 0 6px 24px var(--shadow);
+      -webkit-tap-highlight-color: transparent;
+      position: relative; overflow: hidden;
+    }
+    .cta::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+    }
+    .cta:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 10px 32px var(--shadow); }
+    .cta:active:not(:disabled) { transform: scale(.98); }
+    .cta:disabled { opacity: .42; cursor: not-allowed; transform: none; filter: none; }
+
+    /* ── 결과 ── */
+    #result { padding: 0 18px; margin-top: 12px; }
+    .res-card {
+      border-radius: 28px; overflow: hidden;
+      box-shadow: 0 16px 56px var(--shadow);
+      animation: slideUp .65s cubic-bezier(.16,1,.3,1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(48px) scale(.94); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* 결과 헤더 */
+    .res-hdr { padding: 38px 28px 30px; position: relative; overflow: hidden; }
+    .res-hdr::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 240px; height: 240px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+    }
+    .res-hdr::after {
+      content: ''; position: absolute; bottom: -40px; left: -40px;
+      width: 160px; height: 160px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+    .steam-wrap { display: flex; gap: 5px; align-items: flex-end; height: 24px; margin-bottom: 8px; position: relative; z-index:1; }
+    .steam-bar { width: 3px; border-radius: 3px; background: rgba(255,255,255,0.5); animation: steamUp 2.4s ease-in-out infinite; }
+    .steam-bar:nth-child(1) { height: 10px; animation-delay: 0s; }
+    .steam-bar:nth-child(2) { height: 17px; animation-delay: .38s; }
+    .steam-bar:nth-child(3) { height: 10px; animation-delay: .76s; }
+    @keyframes steamUp {
+      0%,100% { transform: translateY(0) scaleX(1); opacity: .3; }
+      50%      { transform: translateY(-8px) scaleX(1.7); opacity: .9; }
+    }
+    .tea-emoji { font-size: 56px; line-height:1; display:block; margin-bottom:6px; position:relative;z-index:1; }
+
+    .res-badges { display: flex; gap: 7px; margin-bottom: 12px; position:relative;z-index:1; flex-wrap: wrap; }
+    .badge {
+      display: inline-block; font-size: 10px; font-weight: 500;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.18);
+      border-radius: 30px; padding: 4px 12px;
+    }
+
+    .tea-kr {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(32px, 9.5vw, 50px); font-weight: 600;
+      color: #fff; line-height: 1.1; margin-bottom: 4px;
+      position:relative;z-index:1;
+    }
+    .tea-en { font-size: 13px; font-weight:300; color: rgba(255,255,255,.7); letter-spacing:.1em; margin-bottom:16px; position:relative;z-index:1; }
+    .tea-desc { font-size:15px; font-weight:300; color:rgba(255,255,255,.93); line-height:1.8; position:relative;z-index:1; }
+
+    /* 카페인 뱃지 */
+    .cf-wrap { display:flex; align-items:center; gap:5px; margin-top:14px; position:relative;z-index:1; }
+    .cf-lbl { font-size:11px; color:rgba(255,255,255,.65); font-weight:400; margin-right:2px; }
+    .cf-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.2); transition:background .3s; }
+    .cf-dot.on { background:rgba(255,255,255,.85); }
+    .cf-text { font-size:11px; color:rgba(255,255,255,.6); margin-left:4px; }
+
+    /* 서빙 방식 */
+    .serve-wrap { display:flex; gap:7px; margin-top:10px; position:relative;z-index:1; }
+    .serve-chip {
+      font-size:11px; padding:4px 11px; border-radius:20px;
+      background:rgba(255,255,255,.15); color:rgba(255,255,255,.85);
+      border:1px solid rgba(255,255,255,.25);
+    }
+
+    /* 결과 바디 */
+    .res-body {
+      background: var(--card);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding: 22px 24px 26px;
+    }
+
+    /* 섹션 타이틀 */
+    .sec-title {
+      font-size: 10px; font-weight:500; letter-spacing:.16em;
+      text-transform:uppercase; color:var(--sub); margin-bottom:10px;
+    }
+
+    /* 추천 이유 */
+    .reason-list { display:flex; flex-direction:column; gap:8px; margin-bottom:22px; }
+    .reason-item {
+      display:flex; gap:10px; align-items:flex-start;
+      background:rgba(255,255,255,0.13); border-radius:13px;
+      padding:12px 14px; font-size:13.5px; line-height:1.7; color:var(--text);
+    }
+    .reason-ic { font-size:16px; flex-shrink:0; margin-top:1px; }
+
+    /* 맛 프로필 */
+    .flavor-section { margin-bottom:22px; }
+    .flavor-row { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+    .flavor-lbl { font-size:12px; color:var(--sub); width:38px; flex-shrink:0; text-align:right; }
+    .flavor-track {
+      flex:1; height:5px; border-radius:3px;
+      background:rgba(0,0,0,0.08);
+    }
+    body.night .flavor-track { background: rgba(255,255,255,0.1); }
+    .flavor-bar {
+      height:100%; border-radius:3px; background:var(--active);
+      width:0; transition:width .9s cubic-bezier(.4,0,.2,1);
+      opacity:.85;
+    }
+    .flavor-val { font-size:11px; color:var(--subsub); width:22px; text-align:right; flex-shrink:0; }
+
+    /* 우리는 방법 */
+    .brew-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:22px; }
+    .brew-item { text-align:center; background:rgba(255,255,255,0.12); border-radius:14px; padding:14px 8px; }
+    .brew-ic { font-size:20px; margin-bottom:6px; }
+    .brew-v { font-size:12.5px; font-weight:500; color:var(--text); margin-bottom:3px; }
+    .brew-k { font-size:10px; color:var(--sub); font-weight:300; }
+
+    /* 효능 */
+    .benefits { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:22px; }
+    .b-tag {
+      font-size:12px; padding:5px 13px; border-radius:30px;
+      background:rgba(255,255,255,0.15); color:var(--text);
+      border:1px solid rgba(255,255,255,0.22);
+    }
+
+    /* 페어링 */
+    .pairing-box {
+      background:rgba(255,255,255,0.12); border-radius:13px;
+      padding:13px 16px; margin-bottom:22px;
+      font-size:13.5px; color:var(--text); line-height:1.7;
+    }
+    .pairing-box strong { color:var(--active); font-weight:500; }
+
+    /* 액션 버튼 */
+    .res-actions { display:flex; gap:10px; }
+    .btn-s {
+      flex:1; padding:14px; border-radius:13px;
+      border:1.5px solid var(--card-b); background:var(--pill);
+      color:var(--text); font-family:'Noto Sans KR',sans-serif;
+      font-size:14px; cursor:pointer; transition:all .2s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .btn-s:hover { background:var(--pill-h); }
+    .btn-p {
+      flex:1; padding:14px; border-radius:13px; border:none;
+      background:var(--active); color:#fff;
+      font-family:'Noto Sans KR',sans-serif;
+      font-size:14px; font-weight:500; cursor:pointer;
+      transition:all .2s; -webkit-tap-highlight-color:transparent;
+      position:relative; overflow:hidden;
+    }
+    .btn-p::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.15) 0%,transparent 60%); }
+    .btn-p:hover { filter:brightness(1.08); }
+
+    /* 구분선 */
+    .divider { height:1px; background:rgba(0,0,0,0.06); margin:0 0 18px; }
+    body.night .divider { background:rgba(255,255,255,0.08); }
+
+    /* 푸터 */
+    .footer { text-align:center; padding:36px 18px 0; font-size:12px; font-weight:300; color:var(--sub); opacity:.55; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="container">
+    <div class="hdr">
+      <div class="hdr-time" id="timeLabel">—</div>
+      <h1 class="hdr-title">오늘의 차</h1>
+      <p class="hdr-sub">지금 이 순간을 위한<br>특별한 한 잔을 찾아드릴게요</p>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="pdot" id="pd0"></div>
+      <div class="pdot" id="pd1"></div>
+      <div class="pdot" id="pd2"></div>
+      <div class="pdot" id="pd3"></div>
+      <div class="pdot" id="pd4"></div>
+      <div class="pdot" id="pd5"></div>
+      <span class="prog-label" id="progLabel">0 / 6</span>
+    </div>
+
+    <!-- 날씨 -->
+    <div class="card" id="c0">
+      <div class="card-hdr">
+        <span class="card-num" id="n0">1</span>
+        <span class="card-lbl">날씨</span>
+        <span class="card-sel" id="s0"></span>
+      </div>
+      <div class="opts">
+        <button class="opt" data-g="weather" data-v="sunny" data-l="맑음"><span class="opt-ic">☀️</span>맑음</button>
+        <button class="opt" data-g="weather" data-v="cloudy" data-l="흐림"><span class="opt-ic">⛅</span>흐림</button>
+        <button class="opt" data-g="weather" data-v="rainy" data-l="비"><span class="opt-ic">🌧️</span>비</button>
+        <button class="opt" data-g="weather" data-v="snowy" data-l="눈"><span class="opt-ic">❄️</span>눈</button>
+        <button class="opt" data-g="weather" data-v="windy" data-l="바람"><span class="opt-ic">🌬️</span>바람</button>
+        <button class="opt" data-g="weather" data-v="foggy" data-l="안개"><span class="opt-ic">🌫️</span>안개</button>
+      </div>
+    </div>
+
+    <!-- 기온 -->
+    <div class="card" id="c1">
+      <div class="card-hdr">
+        <span class="card-num" id="n1">2</span>
+        <span class="card-lbl">기온</span>
+        <span class="card-sel" id="s1"></span>
+      </div>
+      <div class="opts">
+        <button class="opt" data-g="temp" data-v="hot" data-l="더움"><span class="opt-ic">🔥</span>더움</button>
+        <button class="opt" data-g="temp" data-v="warm" data-l="따뜻함"><span class="opt-ic">🌤️</span>따뜻함</button>
+        <button class="opt" data-g="temp" data-v="cool" data-l="선선함"><span class="opt-ic">🍃</span>선선함</button>
+        <button class="opt" data-g="temp" data-v="cold" data-l="추움"><span class="opt-ic">🧊</span>추움</button>
+        <button class="opt" data-g="temp" data-v="veryCold" data-l="매우 추움"><span class="opt-ic">🥶</span>매우 추움</button>
+      </div>
+    </div>
+
+    <!-- 습도 -->
+    <div class="card" id="c2">
+      <div class="card-hdr">
+        <span class="card-num" id="n2">3</span>
+        <span class="card-lbl">습도</span>
+        <span class="card-sel" id="s2"></span>
+      </div>
+      <div class="opts">
+        <button class="opt" data-g="humid" data-v="veryDry" data-l="매우 건조"><span class="opt-ic">🏜️</span>매우 건조</button>
+        <button class="opt" data-g="humid" data-v="dry" data-l="건조"><span class="opt-ic">💨</span>건조</button>
+        <button class="opt" data-g="humid" data-v="normal" data-l="보통"><span class="opt-ic">💧</span>보통</button>
+        <button class="opt" data-g="humid" data-v="humid" data-l="습함"><span class="opt-ic">🌊</span>습함</button>
+        <button class="opt" data-g="humid" data-v="veryHumid" data-l="매우 습함"><span class="opt-ic">🫧</span>매우 습함</button>
+      </div>
+    </div>
+
+    <!-- 기분 -->
+    <div class="card" id="c3">
+      <div class="card-hdr">
+        <span class="card-num" id="n3">4</span>
+        <span class="card-lbl">지금 기분</span>
+        <span class="card-sel" id="s3"></span>
+      </div>
+      <div class="opts">
+        <button class="opt" data-g="mood" data-v="calm" data-l="평온"><span class="opt-ic">😌</span>평온</button>
+        <button class="opt" data-g="mood" data-v="focused" data-l="집중"><span class="opt-ic">🎯</span>집중</button>
+        <button class="opt" data-g="mood" data-v="energetic" data-l="활기"><span class="opt-ic">✨</span>활기</button>
+        <button class="opt" data-g="mood" data-v="creative" data-l="창의적"><span class="opt-ic">🎨</span>창의적</button>
+        <button class="opt" data-g="mood" data-v="tired" data-l="피곤"><span class="opt-ic">😪</span>피곤</button>
+        <button class="opt" data-g="mood" data-v="stressed" data-l="스트레스"><span class="opt-ic">😤</span>스트레스</button>
+        <button class="opt" data-g="mood" data-v="happy" data-l="행복"><span class="opt-ic">😊</span>행복</button>
+        <button class="opt" data-g="mood" data-v="sad" data-l="우울"><span class="opt-ic">😢</span>우울</button>
+      </div>
+    </div>
+
+    <!-- 활동 -->
+    <div class="card" id="c4">
+      <div class="card-hdr">
+        <span class="card-num" id="n4">5</span>
+        <span class="card-lbl">지금 뭐 하고 있어요?</span>
+        <span class="card-sel" id="s4"></span>
+      </div>
+      <div class="opts">
+        <button class="opt" data-g="activity" data-v="reading" data-l="독서"><span class="opt-ic">📖</span>독서</button>
+        <button class="opt" data-g="activity" data-v="working" data-l="집중 업무"><span class="opt-ic">💼</span>집중 업무</button>
+        <button class="opt" data-g="activity" data-v="resting" data-l="휴식"><span class="opt-ic">🛋️</span>휴식</button>
+        <button class="opt" data-g="activity" data-v="afterExercise" data-l="운동 후"><span class="opt-ic">🏃</span>운동 후</button>
+        <button class="opt" data-g="activity" data-v="meditation" data-l="명상"><span class="opt-ic">🧘</span>명상</button>
+        <button class="opt" data-g="activity" data-v="afterMeal" data-l="식사 후"><span class="opt-ic">🍽️</span>식사 후</button>
+        <button class="opt" data-g="activity" data-v="beforeSleep" data-l="취침 전"><span class="opt-ic">🌙</span>취침 전</button>
+        <button class="opt" data-g="activity" data-v="creative" data-l="창작 활동"><span class="opt-ic">🎨</span>창작 활동</button>
+      </div>
+    </div>
+
+    <!-- 카페인 -->
+    <div class="card" id="c5">
+      <div class="card-hdr">
+        <span class="card-num" id="n5">6</span>
+        <span class="card-lbl">카페인</span>
+        <span class="card-sel" id="s5"></span>
+      </div>
+      <div class="opts">
+        <button class="opt" data-g="caff" data-v="none" data-l="없이"><span class="opt-ic">🌿</span>없이 (디카페인)</button>
+        <button class="opt" data-g="caff" data-v="low" data-l="조금만"><span class="opt-ic">🍃</span>조금만</button>
+        <button class="opt" data-g="caff" data-v="medium" data-l="적당히"><span class="opt-ic">🍵</span>적당히</button>
+        <button class="opt" data-g="caff" data-v="high" data-l="많이"><span class="opt-ic">⚡</span>많이</button>
+      </div>
+    </div>
+
+    <div class="cta-wrap">
+      <button class="cta" id="ctaBtn" disabled>조건을 모두 선택해 주세요</button>
+    </div>
+  </div>
+
+  <div id="result"></div>
+  <div class="footer">오늘도 좋은 하루 보내세요 ✦</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// 차 데이터베이스 (16종)
+// ══════════════════════════════════════════════
+const TEAS = [
+  {
+    id:'matcha', name:'말차', en:'Matcha', emoji:'🍵',
+    grad:'linear-gradient(145deg,#1a4020 0%,#2e6e3c 50%,#50a060 100%)',
+    caffeine: 3, // 0=없음 1=낮음 2=보통 3=높음 4=매우높음
+    cfText: '카페인 높음',
+    serve: ['뜨겁게','아이스'],
+    desc:'고요한 다실에서 전통 방식으로 준비한 진한 말차. 집중력과 차분한 에너지를 동시에 선사합니다.',
+    brew:{ temp:'75°C', time:'즉시', amount:'2g / 60ml' },
+    benefits:['집중력 향상','L-테아닌','항산화','대사 촉진'],
+    pairing:'화과자, 다크 초콜릿, 말차 케이크',
+    flavor:{ bitter:75, sweet:20, floral:30, earthy:45, fresh:55, citrus:0 },
+    score:{
+      weather:{ sunny:4,cloudy:3,rainy:2,snowy:2,windy:2,foggy:3 },
+      temp:   { hot:1,warm:3,cool:5,cold:3,veryCold:2 },
+      humid:  { veryDry:3,dry:3,normal:4,humid:2,veryHumid:1 },
+      mood:   { calm:5,focused:5,energetic:4,creative:4,tired:5,stressed:2,happy:3,sad:3 },
+      activity:{ reading:4,working:5,resting:2,afterExercise:1,meditation:4,afterMeal:2,beforeSleep:0,creative:4 }
+    },
+    why:{
+      weather:{ sunny:'맑은 날 차분하게 집중할 수 있게 도와줘요',cloudy:'흐린 날씨에도 에너지를 지속시켜 줍니다',rainy:'빗소리와 함께 깊은 집중이 찾아와요',snowy:'설경 앞에서 마시는 말차는 특별해요',windy:'바람 속에서 고요한 안정감을 줍니다',foggy:'안개 낀 날 더욱 신비로운 분위기를 만들어요' },
+      mood:   { calm:'평온한 상태에서 깊은 집중으로 이어집니다',focused:'이미 집중 모드인 당신에게 최고의 파트너예요',energetic:'활기찬 에너지를 더 오래 유지해줘요',creative:'L-테아닌이 창의적 집중력을 높여줍니다',tired:'카페인과 L-테아닌이 맑은 정신을 깨워줍니다',stressed:'차를 준비하는 과정 자체가 명상이 됩니다',happy:'행복한 순간을 더 특별하게 만들어줘요',sad:'씁쓸한 깊은 맛이 마음을 다독여줍니다' },
+      activity:{ reading:'독서 집중력을 높여주는 L-테아닌 효과가 탁월해요',working:'업무 효율을 극대화하는 말차의 힘을 느껴보세요',resting:'잠시 활력을 충전하는 시간에 어울려요',afterExercise:'고강도 운동 후엔 부담이 될 수 있어요',meditation:'차 준비 과정 자체가 명상의 시작이에요',afterMeal:'식후 상쾌함을 더해줍니다',beforeSleep:'취침 전엔 카페인에 주의하세요',creative:'창작의 몰입감을 높여주는 최고의 선택이에요' }
+    }
+  },
+  {
+    id:'chamomile', name:'카모마일', en:'Chamomile', emoji:'🌼',
+    grad:'linear-gradient(145deg,#7a4e00 0%,#c08800 50%,#e8c040 100%)',
+    caffeine:0, cfText:'카페인 없음',
+    serve:['뜨겁게'],
+    desc:'사과꽃처럼 달콤한 향기. 하루의 긴장을 풀어주는 따뜻한 포옹 같은 차입니다.',
+    brew:{ temp:'90°C', time:'5분', amount:'2g / 200ml' },
+    benefits:['스트레스 완화','수면 개선','소화 촉진','항불안'],
+    pairing:'꿀 쿠키, 레몬 케이크, 마들렌',
+    flavor:{ bitter:8,sweet:65,floral:92,earthy:10,fresh:35,citrus:22 },
+    score:{
+      weather:{ sunny:2,cloudy:3,rainy:5,snowy:5,windy:3,foggy:4 },
+      temp:   { hot:1,warm:3,cool:5,cold:5,veryCold:5 },
+      humid:  { veryDry:4,dry:4,normal:4,humid:3,veryHumid:2 },
+      mood:   { calm:4,focused:2,energetic:1,creative:2,tired:4,stressed:5,happy:3,sad:5 },
+      activity:{ reading:4,working:1,resting:5,afterExercise:2,meditation:4,afterMeal:3,beforeSleep:5,creative:2 }
+    },
+    why:{
+      weather:{ sunny:'잠시 쉬어가는 여유로운 시간에 어울려요',cloudy:'흐린 하늘 아래 마음을 편안하게 해줍니다',rainy:'빗소리와 함께라면 이보다 더 포근할 수 없어요',snowy:'눈 내리는 날 따뜻하게 몸을 녹여줍니다',windy:'바람 부는 날 실내에서 안정감을 줍니다',foggy:'안개 낀 날 달콤한 꽃향기가 더욱 진하게 느껴져요' },
+      mood:   { calm:'달콤한 꽃향기가 더 깊은 휴식으로 이어줍니다',focused:'잠시 숨을 고르고 충전하는 시간이에요',energetic:'속도를 줄이고 내면을 충전하는 시간을 가져요',creative:'여유로운 상상력의 흐름에 어울립니다',tired:'피곤한 몸과 마음을 포근하게 감싸줍니다',stressed:'긴장된 신경을 부드럽게 달래주는 최고의 차예요',happy:'행복한 기분을 더 오래 유지하고 싶을 때',sad:'우울한 마음을 따뜻하게 안아주는 차입니다' },
+      activity:{ reading:'독서하며 천천히 쉬어가기 딱 좋아요',working:'업무 중 힐링 타임에 어울립니다',resting:'온전한 휴식을 위한 최고의 차예요',afterExercise:'가볍게 몸을 이완시켜 줍니다',meditation:'명상과 완벽하게 어울리는 꽃향기예요',afterMeal:'식후 소화를 도와줍니다',beforeSleep:'수면 전 최고의 루틴 차입니다',creative:'편안한 상상력의 흐름에 어울려요' }
+    }
+  },
+  {
+    id:'green', name:'녹차', en:'Green Tea', emoji:'🍃',
+    grad:'linear-gradient(145deg,#123820 0%,#286040 50%,#48a868 100%)',
+    caffeine:2, cfText:'카페인 보통',
+    serve:['뜨겁게','아이스'],
+    desc:'깔끔하고 신선한 풀향기. 일상의 균형을 잡아주는 가장 기본적이고 완벽한 차입니다.',
+    brew:{ temp:'75°C', time:'2분', amount:'3g / 200ml' },
+    benefits:['항산화','신진대사','구강 건강','면역력'],
+    pairing:'비스킷, 화과자, 가벼운 샌드위치',
+    flavor:{ bitter:42,sweet:18,floral:32,earthy:22,fresh:85,citrus:12 },
+    score:{
+      weather:{ sunny:5,cloudy:4,rainy:3,snowy:2,windy:3,foggy:3 },
+      temp:   { hot:3,warm:5,cool:4,cold:2,veryCold:1 },
+      humid:  { veryDry:3,dry:3,normal:5,humid:3,veryHumid:2 },
+      mood:   { calm:4,focused:3,energetic:3,creative:3,tired:3,stressed:3,happy:5,sad:2 },
+      activity:{ reading:4,working:3,resting:3,afterExercise:3,meditation:3,afterMeal:4,beforeSleep:1,creative:3 }
+    },
+    why:{
+      weather:{ sunny:'맑은 날씨처럼 깔끔하고 상쾌한 맛이에요',cloudy:'흐린 날 신선함을 더해줍니다',rainy:'빗속에서 자연의 풀향을 느껴보세요',snowy:'겨울에도 신선한 자연의 맛을 즐겨요',windy:'바람처럼 가볍고 청량한 여운을 줍니다',foggy:'안개 속 신선함이 감각을 깨워줘요' },
+      mood:   { calm:'평온한 마음에 맑은 정신을 더해줘요',focused:'깔끔한 맛이 집중력을 자연스럽게 유지시켜요',energetic:'활기를 자연스럽게 유지시켜줍니다',creative:'맑은 정신이 창의적 흐름을 돕습니다',tired:'가벼운 카페인으로 슬며시 깨어나요',stressed:'신선한 향이 복잡한 생각을 정리해줍니다',happy:'행복한 날에 더욱 빛나는 차예요',sad:'맑고 깨끗한 맛이 기분을 전환시켜줍니다' },
+      activity:{ reading:'독서의 맑은 집중력과 잘 어울려요',working:'깔끔하게 업무에 집중할 수 있어요',resting:'가벼운 휴식에 딱 맞는 담백함이에요',afterExercise:'운동 후 항산화로 몸을 회복해요',meditation:'자연스러운 맑음이 명상과 어울립니다',afterMeal:'식후 개운함을 더해줍니다',beforeSleep:'취침 전 카페인에 약간 주의하세요',creative:'가볍게 집중하는 창작 시간에 어울려요' }
+    }
+  },
+  {
+    id:'oolong', name:'우롱차', en:'Oolong', emoji:'🫖',
+    grad:'linear-gradient(145deg,#3a1a08 0%,#724020 50%,#b07848 100%)',
+    caffeine:2, cfText:'카페인 보통',
+    serve:['뜨겁게'],
+    desc:'녹차와 홍차 사이, 복잡하고 풍부한 향미. 한 모금에 수많은 이야기가 담겨 있습니다.',
+    brew:{ temp:'88°C', time:'4분', amount:'5g / 200ml' },
+    benefits:['체중 관리','혈당 조절','피부 건강','소화 개선'],
+    pairing:'견과류, 치즈, 가벼운 짭짤한 스낵',
+    flavor:{ bitter:32,sweet:42,floral:62,earthy:52,fresh:42,citrus:18 },
+    score:{
+      weather:{ sunny:3,cloudy:4,rainy:4,snowy:3,windy:4,foggy:4 },
+      temp:   { hot:2,warm:4,cool:5,cold:4,veryCold:3 },
+      humid:  { veryDry:4,dry:4,normal:5,humid:4,veryHumid:3 },
+      mood:   { calm:5,focused:4,energetic:3,creative:5,tired:3,stressed:4,happy:4,sad:3 },
+      activity:{ reading:5,working:3,resting:4,afterExercise:1,meditation:4,afterMeal:4,beforeSleep:1,creative:5 }
+    },
+    why:{
+      weather:{ sunny:'복잡한 향미를 천천히 음미하기 좋은 날이에요',cloudy:'흐린 날씨에 우롱차의 깊은 맛이 어울립니다',rainy:'빗소리와 함께 복잡한 향미를 탐험해보세요',snowy:'눈 내리는 날 따뜻한 우롱차가 최고예요',windy:'바람 속에서 안정감 있는 풍미를 즐겨요',foggy:'안개처럼 신비로운 향미가 잘 어울려요' },
+      mood:   { calm:'평온한 마음으로 복잡한 향미를 음미하기 딱 좋아요',focused:'집중하며 다양한 맛의 층을 발견해요',energetic:'다양한 맛을 탐험하며 활기를 즐겨요',creative:'복잡한 향미가 창의적 영감을 자극합니다',tired:'풍부한 맛이 감각을 깨워줍니다',stressed:'복잡한 맛에 집중하다 보면 스트레스가 사라져요',happy:'행복한 기분에 풍요로운 맛을 더해줍니다',sad:'깊고 복잡한 맛이 감정을 정화시켜줍니다' },
+      activity:{ reading:'독서와 함께 복잡한 향미를 음미해보세요',working:'집중적인 업무에 지속적인 활력을 줍니다',resting:'여유로운 휴식과 완벽하게 어울려요',afterExercise:'운동 직후엔 물을 먼저 마시는 게 좋아요',meditation:'복잡한 향미가 감각 명상을 도와줍니다',afterMeal:'식후 소화를 돕고 개운함을 줍니다',beforeSleep:'취침 전에는 카페인을 주의하세요',creative:'복잡한 향미가 창의적 흐름을 자극합니다' }
+    }
+  },
+  {
+    id:'black', name:'홍차', en:'Black Tea', emoji:'☕',
+    grad:'linear-gradient(145deg,#280600 0%,#6a1808 50%,#b03828 100%)',
+    caffeine:3, cfText:'카페인 높음',
+    serve:['뜨겁게','아이스'],
+    desc:'진하고 풍성한 바디감. 밀크티로, 레몬으로, 혹은 그대로 즐겨도 완벽합니다.',
+    brew:{ temp:'100°C', time:'4분', amount:'3g / 200ml' },
+    benefits:['심혈관 건강','장 건강','집중력','에너지 증진'],
+    pairing:'스콘, 밀크티 케이크, 크림 샌드위치',
+    flavor:{ bitter:62,sweet:28,floral:20,earthy:62,fresh:20,citrus:10 },
+    score:{
+      weather:{ sunny:3,cloudy:4,rainy:5,snowy:5,windy:4,foggy:4 },
+      temp:   { hot:1,warm:3,cool:4,cold:5,veryCold:5 },
+      humid:  { veryDry:5,dry:5,normal:4,humid:2,veryHumid:1 },
+      mood:   { calm:2,focused:4,energetic:5,creative:3,tired:5,stressed:2,happy:4,sad:3 },
+      activity:{ reading:3,working:5,resting:2,afterExercise:2,meditation:1,afterMeal:3,beforeSleep:0,creative:3 }
+    },
+    why:{
+      weather:{ sunny:'풍성한 맛으로 하루를 든든하게 시작해요',cloudy:'흐린 날씨에 진한 홍차로 기운을 내요',rainy:'비 오는 날 따뜻한 홍차, 클래식한 조합이에요',snowy:'눈 내리는 날 뜨거운 홍차로 온몸을 녹여요',windy:'거센 바람에도 든든하게 버티게 해줍니다',foggy:'안개 낀 아침 영국식 홍차 한 잔이 딱이에요' },
+      mood:   { calm:'깊은 풍미를 천천히 즐기는 여유로운 시간이에요',focused:'진한 카페인이 업무 집중력을 높여줍니다',energetic:'넘치는 에너지를 더욱 강하게 증폭시켜줘요',creative:'강렬한 맛이 창의력에 자극을 줍니다',tired:'진한 카페인이 확실하게 깨워줍니다',stressed:'잠깐 마시다 보면 긴장이 풀리기도 해요',happy:'행복한 순간을 더 강렬하게 만들어줘요',sad:'진하고 따뜻한 맛이 위로가 됩니다' },
+      activity:{ reading:'집중 독서 시간에 활력을 줍니다',working:'강력한 집중력으로 업무를 처리해요',resting:'활력이 넘쳐 완전한 휴식엔 살짝 아깝네요',afterExercise:'운동 후 수분 보충은 물부터 하는 게 좋아요',meditation:'카페인이 강해 명상에는 덜 어울려요',afterMeal:'식후 소화를 돕고 기분을 전환시켜요',beforeSleep:'취침 전엔 카페인에 주의하세요',creative:'강한 자극이 창의적 에너지를 불어넣어요' }
+    }
+  },
+  {
+    id:'peppermint', name:'페퍼민트', en:'Peppermint', emoji:'🌿',
+    grad:'linear-gradient(145deg,#003028 0%,#005a48 50%,#189878 100%)',
+    caffeine:0, cfText:'카페인 없음',
+    serve:['뜨겁게','아이스'],
+    desc:'시원하고 상쾌한 민트 향이 가득. 뜨겁게 마셔도 차갑게 마셔도 청량감이 남습니다.',
+    brew:{ temp:'90°C', time:'5분', amount:'2g / 200ml' },
+    benefits:['소화 개선','두통 완화','집중력','호흡기 건강'],
+    pairing:'다크 초콜릿, 민트 초코 디저트, 과일',
+    flavor:{ bitter:18,sweet:28,floral:30,earthy:8,fresh:100,citrus:20 },
+    score:{
+      weather:{ sunny:5,cloudy:3,rainy:3,snowy:2,windy:4,foggy:2 },
+      temp:   { hot:5,warm:4,cool:2,cold:1,veryCold:1 },
+      humid:  { veryDry:2,dry:3,normal:4,humid:5,veryHumid:5 },
+      mood:   { calm:2,focused:4,energetic:5,creative:4,tired:5,stressed:4,happy:5,sad:3 },
+      activity:{ reading:3,working:4,resting:2,afterExercise:5,meditation:2,afterMeal:5,beforeSleep:1,creative:3 }
+    },
+    why:{
+      weather:{ sunny:'더운 날씨에 시원한 청량감을 줍니다',cloudy:'흐린 날 상쾌함을 더해줘요',rainy:'빗속에서 청량한 민트향이 기분을 전환시켜요',snowy:'추운 날 따뜻하게 마시면 안팎이 시원해요',windy:'바람처럼 시원한 청량감이 넘칩니다',foggy:'안개 속 상쾌한 민트향이 감각을 깨워줘요' },
+      mood:   { calm:'상쾌한 활력을 살짝 더해줄 수 있어요',focused:'상쾌한 향이 집중력을 자극합니다',energetic:'이미 넘치는 에너지를 시원하게 식혀줍니다',creative:'청량한 자극이 창의적 사고를 도와줘요',tired:'강렬한 민트향이 순식간에 깨워줘요',stressed:'상쾌한 향이 긴장된 신경을 이완시켜요',happy:'행복한 기분을 더욱 경쾌하게 만들어줘요',sad:'강렬한 향으로 감각을 깨워 기분을 전환시켜요' },
+      activity:{ reading:'독서 중 졸릴 때 청량하게 깨워줍니다',working:'업무 집중력 향상에 도움이 돼요',resting:'청량해서 완전한 휴식보다는 활동적인 시간에 어울려요',afterExercise:'운동 후 소화와 청량감을 동시에 줍니다',meditation:'강한 자극이 있어 고요한 명상보다는 활동 명상에 좋아요',afterMeal:'식후 소화 돕기에 최고예요',beforeSleep:'카페인은 없지만 각성 효과가 있어 주의하세요',creative:'창작의 막힌 감각을 뚫어주는 청량함이에요' }
+    }
+  },
+  {
+    id:'ginger', name:'생강차', en:'Ginger Tea', emoji:'🫚',
+    grad:'linear-gradient(145deg,#501800 0%,#963800 50%,#d86010 100%)',
+    caffeine:0, cfText:'카페인 없음',
+    serve:['뜨겁게'],
+    desc:'따뜻하게 타오르는 생강의 매운 향. 몸속 깊이 온기를 전달하는 전통의 지혜입니다.',
+    brew:{ temp:'100°C', time:'10분', amount:'5g / 300ml' },
+    benefits:['혈액순환','면역력 강화','소화 촉진','항염증'],
+    pairing:'꿀, 레몬, 생강 쿠키, 따뜻한 과자',
+    flavor:{ bitter:38,sweet:38,floral:8,earthy:52,fresh:58,citrus:22 },
+    score:{
+      weather:{ sunny:2,cloudy:3,rainy:5,snowy:5,windy:5,foggy:4 },
+      temp:   { hot:0,warm:2,cool:5,cold:5,veryCold:5 },
+      humid:  { veryDry:3,dry:3,normal:3,humid:2,veryHumid:1 },
+      mood:   { calm:2,focused:3,energetic:3,creative:2,tired:5,stressed:3,happy:3,sad:4 },
+      activity:{ reading:2,working:3,resting:4,afterExercise:3,meditation:2,afterMeal:4,beforeSleep:3,creative:2 }
+    },
+    why:{
+      weather:{ sunny:'따뜻하게 몸속부터 관리해요',cloudy:'흐린 날씨에 몸을 따뜻하게 유지해요',rainy:'비 맞고 들어온 날, 이 차 한 잔이면 충분해요',snowy:'눈 오는 날 생강차 한 잔은 최고의 선택이에요',windy:'찬 바람에 얼어붙은 몸을 녹여줍니다',foggy:'안개 낀 습한 날 면역력을 지켜줍니다' },
+      mood:   { calm:'따뜻한 온기로 더 깊은 평온함을 더해요',focused:'따뜻한 자극으로 집중력을 깨워줍니다',energetic:'활력을 내부에서 만들어주는 차예요',creative:'몸이 따뜻해야 창의력도 피어납니다',tired:'혈액순환을 도와 몸 안에서부터 에너지를 만들어요',stressed:'따뜻한 자극이 긴장을 풀어줍니다',happy:'행복한 날 몸도 따뜻하게 관리해요',sad:'따뜻한 자극이 무기력한 몸을 깨워줍니다' },
+      activity:{ reading:'독서 중 몸을 따뜻하게 유지해줍니다',working:'따뜻한 집중력으로 업무에 임해요',resting:'따뜻하게 쉬어가는 시간에 어울려요',afterExercise:'운동 후 근육 이완에 도움이 됩니다',meditation:'따뜻한 온기가 명상에 도움이 돼요',afterMeal:'식후 소화를 촉진하는 효과가 탁월해요',beforeSleep:'잠들기 전 몸을 따뜻하게 해줍니다',creative:'따뜻한 몸에서 창의력이 피어납니다' }
+    }
+  },
+  {
+    id:'yuzu', name:'유자차', en:'Yuzu Tea', emoji:'🍋',
+    grad:'linear-gradient(145deg,#5c3a00 0%,#a87000 50%,#e0b000 100%)',
+    caffeine:0, cfText:'카페인 없음',
+    serve:['뜨겁게','아이스'],
+    desc:'상큼하고 달콤한 유자의 향. 한국의 겨울을 달래주는 따뜻한 전통차입니다.',
+    brew:{ temp:'88°C', time:'즉시', amount:'1스푼 / 200ml' },
+    benefits:['비타민 C','면역력','피부 미용','소화 개선'],
+    pairing:'마카롱, 치즈케이크, 크림 빵',
+    flavor:{ bitter:15,sweet:72,floral:42,earthy:8,fresh:55,citrus:92 },
+    score:{
+      weather:{ sunny:3,cloudy:4,rainy:5,snowy:5,windy:4,foggy:3 },
+      temp:   { hot:2,warm:3,cool:4,cold:5,veryCold:5 },
+      humid:  { veryDry:5,dry:5,normal:4,humid:2,veryHumid:1 },
+      mood:   { calm:3,focused:3,energetic:3,creative:4,tired:4,stressed:4,happy:5,sad:5 },
+      activity:{ reading:3,working:3,resting:4,afterExercise:3,meditation:2,afterMeal:3,beforeSleep:3,creative:4 }
+    },
+    why:{
+      weather:{ sunny:'상큼한 유자향이 맑은 날씨와 잘 어울려요',cloudy:'화사한 향이 흐린 날 기분을 밝혀줍니다',rainy:'비 오는 날 상큼달콤한 유자차가 위로가 돼요',snowy:'눈 내리는 날 따뜻한 유자차는 한국의 겨울 정서예요',windy:'바람 부는 날 비타민으로 면역력을 지켜요',foggy:'안개 낀 날 상큼한 향이 활력을 줍니다' },
+      mood:   { calm:'평온한 마음에 상큼함을 살짝 더해줘요',focused:'상큼함이 집중력 유지를 도와줘요',energetic:'상큼한 활력을 계속 유지시켜줍니다',creative:'화사한 향이 창의적 영감을 자극해요',tired:'비타민 C가 피로 회복에 도움이 됩니다',stressed:'달콤하고 상큼한 맛이 스트레스를 녹여줘요',happy:'행복한 날에 가장 잘 어울리는 상큼함이에요',sad:'새콤달콤함이 기분을 환하게 밝혀줍니다' },
+      activity:{ reading:'독서 중 상큼하게 기분 전환이 돼요',working:'집중 업무 중 비타민으로 활력을 줍니다',resting:'여유로운 휴식에 달콤하게 어울려요',afterExercise:'비타민 C로 피로 회복을 도와줍니다',meditation:'상큼한 향이 감각을 열어줍니다',afterMeal:'식후 상큼하게 입을 정리해줍니다',beforeSleep:'취침 전 달콤하게 하루를 마무리해요',creative:'상큼한 향이 창의적 흐름을 자극합니다' }
+    }
+  },
+  {
+    id:'hibiscus', name:'히비스커스', en:'Hibiscus', emoji:'🌺',
+    grad:'linear-gradient(145deg,#3e0010 0%,#880020 50%,#d00042 100%)',
+    caffeine:0, cfText:'카페인 없음',
+    serve:['뜨겁게','아이스'],
+    desc:'진홍빛 아름다움 속에 새콤한 여운. 보기에도 마시기에도 특별한 꽃차입니다.',
+    brew:{ temp:'90°C', time:'5분', amount:'3g / 200ml' },
+    benefits:['혈압 조절','항산화','이뇨 작용','다이어트'],
+    pairing:'신선한 과일, 요거트, 베리 디저트',
+    flavor:{ bitter:38,sweet:25,floral:55,earthy:8,fresh:42,citrus:85 },
+    score:{
+      weather:{ sunny:5,cloudy:3,rainy:2,snowy:1,windy:3,foggy:2 },
+      temp:   { hot:5,warm:4,cool:3,cold:1,veryCold:0 },
+      humid:  { veryDry:1,dry:2,normal:4,humid:5,veryHumid:5 },
+      mood:   { calm:2,focused:3,energetic:5,creative:5,tired:3,stressed:3,happy:5,sad:2 },
+      activity:{ reading:2,working:3,resting:3,afterExercise:5,meditation:2,afterMeal:3,beforeSleep:2,creative:4 }
+    },
+    why:{
+      weather:{ sunny:'더운 날씨에 새콤한 히비스커스가 최고예요',cloudy:'진홍빛 차가 흐린 날을 화려하게 물들여요',rainy:'새콤한 맛이 빗속 기분을 전환시켜줍니다',snowy:'눈 오는 날은 따뜻한 차가 더 잘 어울려요',windy:'상큼한 에너지로 바람과 함께 달려봐요',foggy:'안개 낀 날 새콤한 자극으로 감각을 깨워요' },
+      mood:   { calm:'평온함에 화사함을 더하고 싶을 때',focused:'새콤한 자극이 집중력을 높여줄 수 있어요',energetic:'활기찬 에너지와 완벽하게 매칭되는 차예요',creative:'화려한 색과 맛이 창의적 영감을 자극해요',tired:'새콤한 자극이 잠든 감각을 깨워줍니다',stressed:'화사한 색깔과 맛이 기분을 전환시켜줘요',happy:'행복한 기분에 딱 맞는 화려한 차예요',sad:'강렬한 색감과 맛으로 감각을 깨워봐요' },
+      activity:{ reading:'독서 중 새콤한 기분 전환이 돼요',working:'상큼한 자극으로 업무 의욕을 높여줘요',resting:'화사한 빛깔을 바라보며 쉬어가기 좋아요',afterExercise:'운동 후 수분 보충과 항산화에 탁월해요',meditation:'강한 자극이 있어 고요한 명상보단 활동적인 명상에 어울려요',afterMeal:'식후 새콤하게 입을 정리해줍니다',beforeSleep:'카페인은 없지만 각성 효과에 주의하세요',creative:'화려한 빛깔이 창작 공간을 물들여요' }
+    }
+  },
+  {
+    id:'lavender', name:'라벤더', en:'Lavender', emoji:'💜',
+    grad:'linear-gradient(145deg,#180030 0%,#420878 50%,#8040c8 100%)',
+    caffeine:0, cfText:'카페인 없음',
+    serve:['뜨겁게'],
+    desc:'보라빛 들판의 향기가 담긴 차. 마음 깊은 곳의 긴장을 부드럽게 풀어줍니다.',
+    brew:{ temp:'90°C', time:'4분', amount:'2g / 200ml' },
+    benefits:['불안 완화','수면 개선','두통 완화','항균'],
+    pairing:'버터쿠키, 라벤더 마카롱, 바닐라 케이크',
+    flavor:{ bitter:8,sweet:32,floral:100,earthy:18,fresh:52,citrus:10 },
+    score:{
+      weather:{ sunny:3,cloudy:4,rainy:5,snowy:4,windy:4,foggy:5 },
+      temp:   { hot:2,warm:4,cool:5,cold:4,veryCold:3 },
+      humid:  { veryDry:4,dry:4,normal:4,humid:3,veryHumid:2 },
+      mood:   { calm:5,focused:1,energetic:1,creative:3,tired:5,stressed:5,happy:3,sad:5 },
+      activity:{ reading:4,working:1,resting:5,afterExercise:3,meditation:5,afterMeal:3,beforeSleep:5,creative:3 }
+    },
+    why:{
+      weather:{ sunny:'맑은 하늘 아래 여유로운 휴식을 즐겨요',cloudy:'흐린 날 라벤더 향이 마음을 밝혀줍니다',rainy:'빗소리에 라벤더 향, 최고의 힐링 조합이에요',snowy:'눈 내리는 고요한 밤에 깊은 휴식을 줍니다',windy:'바람 부는 날 안정감을 찾아줍니다',foggy:'안개 낀 신비로운 날 라벤더 향이 더욱 몽환적이에요' },
+      mood:   { calm:'더 깊은 휴식으로 이어주는 보라빛 향기예요',focused:'집중보다는 충전이 필요한 순간이에요',energetic:'잠시 멈추고 깊이 쉬어가는 시간을 가져봐요',creative:'몽환적인 영감이 필요할 때 어울려요',tired:'심신의 피로를 부드럽게 녹여줍니다',stressed:'라벤더 향 자체가 스트레스 해독제예요',happy:'행복한 날 더 깊은 만족감을 더해요',sad:'보라빛 향기가 어두운 마음을 달래줍니다' },
+      activity:{ reading:'독서와 함께 여유로운 휴식을 즐겨요',working:'업무 중 힐링 타임에 잠시 쉬어가요',resting:'완전한 휴식을 위한 최고의 차예요',afterExercise:'운동 후 긴장된 몸을 부드럽게 이완시켜요',meditation:'명상과 가장 완벽하게 어울리는 차예요',afterMeal:'식후 편안하게 몸을 이완시켜줍니다',beforeSleep:'취침 전 수면 준비에 최고예요',creative:'몽환적인 창작 영감에 어울립니다' }
+    }
+  },
+  {
+    id:'white', name:'백차', en:'White Tea', emoji:'🌸',
+    grad:'linear-gradient(145deg,#3e2018 0%,#7a5040 50%,#c09080 100%)',
+    caffeine:1, cfText:'카페인 낮음',
+    serve:['뜨겁게'],
+    desc:'가장 섬세하고 연한 찻잎. 꽃과 과일의 미묘한 향이 오래도록 여운을 남깁니다.',
+    brew:{ temp:'72°C', time:'2-3분', amount:'4g / 200ml' },
+    benefits:['항산화','피부 미용','항균','면역력'],
+    pairing:'신선한 과일, 가벼운 샌드위치, 크래커',
+    flavor:{ bitter:18,sweet:32,floral:72,earthy:18,fresh:62,citrus:22 },
+    score:{
+      weather:{ sunny:4,cloudy:4,rainy:3,snowy:2,windy:3,foggy:4 },
+      temp:   { hot:2,warm:5,cool:4,cold:2,veryCold:1 },
+      humid:  { veryDry:4,dry:5,normal:5,humid:3,veryHumid:2 },
+      mood:   { calm:5,focused:3,energetic:2,creative:4,tired:2,stressed:4,happy:5,sad:3 },
+      activity:{ reading:5,working:2,resting:4,afterExercise:1,meditation:4,afterMeal:3,beforeSleep:2,creative:4 }
+    },
+    why:{
+      weather:{ sunny:'맑은 날씨처럼 섬세하고 투명한 맛이에요',cloudy:'은은한 꽃향기가 흐린 날을 부드럽게 채워요',rainy:'빗속에서 섬세한 향미를 조용히 음미해요',snowy:'눈처럼 순수하고 섬세한 차입니다',windy:'조용한 실내에서 섬세한 맛을 즐겨요',foggy:'안개처럼 섬세하고 신비로운 향미예요' },
+      mood:   { calm:'평온한 마음과 가장 잘 어울리는 섬세한 차예요',focused:'섬세한 맛에 집중하며 마음을 가다듬어요',energetic:'잠시 조용히 앉아 섬세함을 느껴봐요',creative:'섬세한 향미가 창의적 감수성을 자극해요',tired:'부드러운 맛으로 조용히 쉬어가요',stressed:'섬세한 향에 집중하다 보면 마음이 맑아져요',happy:'행복한 날에 가장 특별한 차를 즐겨요',sad:'꽃 같은 향이 마음을 어루만져요' },
+      activity:{ reading:'독서와 가장 잘 어울리는 섬세한 차예요',working:'집중 업무보다는 여유로운 창작에 어울려요',resting:'여유로운 오후에 조용히 음미하기 좋아요',afterExercise:'섬세한 맛이 운동 후엔 좀 아쉬울 수 있어요',meditation:'섬세한 향으로 감각 명상을 해보세요',afterMeal:'식후 가볍게 즐기기 좋습니다',beforeSleep:'낮은 카페인으로 취침 전에도 가능해요',creative:'섬세한 감수성이 필요한 창작에 어울려요' }
+    }
+  },
+  {
+    id:'rooibos', name:'루이보스', en:'Rooibos', emoji:'🍂',
+    grad:'linear-gradient(145deg,#2e0c00 0%,#6e2c10 50%,#b05428 100%)',
+    caffeine:0, cfText:'카페인 없음',
+    serve:['뜨겁게','아이스'],
+    desc:'카페인 없이 달콤하고 포근한 남아프리카의 붉은 차. 밤에도 부담 없이 즐길 수 있습니다.',
+    brew:{ temp:'100°C', time:'5-7분', amount:'5g / 300ml' },
+    benefits:['카페인 프리','항산화','뼈 건강','피부 건강'],
+    pairing:'계피 쿠키, 아몬드, 바닐라 디저트',
+    flavor:{ bitter:8,sweet:72,floral:22,earthy:62,fresh:18,citrus:10 },
+    score:{
+      weather:{ sunny:3,cloudy:4,rainy:5,snowy:5,windy:4,foggy:4 },
+      temp:   { hot:1,warm:3,cool:5,cold:5,veryCold:5 },
+      humid:  { veryDry:4,dry:4,normal:4,humid:3,veryHumid:2 },
+      mood:   { calm:5,focused:2,energetic:2,creative:3,tired:4,stressed:5,happy:4,sad:5 },
+      activity:{ reading:4,working:2,resting:5,afterExercise:2,meditation:3,afterMeal:3,beforeSleep:5,creative:3 }
+    },
+    why:{
+      weather:{ sunny:'포근한 맛으로 여유로운 시간을 즐겨요',cloudy:'흐린 날 따뜻하고 달콤한 위로를 줍니다',rainy:'비 오는 날 포근한 루이보스가 최고예요',snowy:'추운 날 달콤하고 따뜻하게 몸을 녹여요',windy:'바람 부는 날 실내에서 포근하게 즐겨요',foggy:'안개 낀 날 따뜻하고 달콤하게 몸을 감싸요' },
+      mood:   { calm:'카페인 없이 깊은 평온함을 유지해요',focused:'달콤하게 충전하며 다시 집중 준비를 해요',energetic:'달콤하게 쉬어가는 시간을 가져봐요',creative:'여유로운 달콤함에서 창의력이 피어나요',tired:'카페인 없이 따뜻하게 회복해요',stressed:'달콤하고 포근한 맛이 스트레스를 녹여줍니다',happy:'행복한 순간을 달콤하게 마무리해요',sad:'달콤하고 따뜻한 포옹 같은 차예요' },
+      activity:{ reading:'카페인 걱정 없이 독서에 집중할 수 있어요',working:'부담 없는 달콤함으로 업무를 이어가요',resting:'완전한 휴식을 위한 최고의 카페인 프리 차예요',afterExercise:'카페인 없이 수분 보충을 할 수 있어요',meditation:'카페인 없는 따뜻함이 명상을 도와줍니다',afterMeal:'식후 달콤하게 마무리해줍니다',beforeSleep:'취침 전 카페인 걱정 없이 즐길 수 있어요',creative:'여유로운 달콤함에서 영감이 떠올라요' }
+    }
+  },
+  {
+    id:'hojicha', name:'호지차', en:'Hojicha', emoji:'🫖',
+    grad:'linear-gradient(145deg,#220c00 0%,#5c2c10 50%,#9c5828 100%)',
+    caffeine:1, cfText:'카페인 낮음',
+    serve:['뜨겁게'],
+    desc:'구운 녹차잎의 구수하고 달콤한 향. 낮은 카페인으로 밤에도 편안하게 즐길 수 있습니다.',
+    brew:{ temp:'95°C', time:'30초', amount:'5g / 200ml' },
+    benefits:['낮은 카페인','소화 촉진','릴렉스','따뜻한 위로'],
+    pairing:'화과자, 검은깨 디저트, 팥 빵',
+    flavor:{ bitter:28,sweet:52,floral:8,earthy:92,fresh:18,citrus:0 },
+    score:{
+      weather:{ sunny:2,cloudy:4,rainy:5,snowy:5,windy:4,foggy:5 },
+      temp:   { hot:1,warm:3,cool:5,cold:5,veryCold:5 },
+      humid:  { veryDry:4,dry:5,normal:5,humid:3,veryHumid:2 },
+      mood:   { calm:5,focused:2,energetic:2,creative:3,tired:4,stressed:5,happy:4,sad:5 },
+      activity:{ reading:5,working:2,resting:5,afterExercise:1,meditation:4,afterMeal:4,beforeSleep:4,creative:3 }
+    },
+    why:{
+      weather:{ sunny:'맑은 날 구수한 향으로 여유를 즐겨요',cloudy:'흐린 날씨에 구수하고 따뜻한 위로를 줍니다',rainy:'비 오는 날 구수한 향이 집안을 가득 채워요',snowy:'눈 내리는 밤, 호지차와 함께라면 완벽해요',windy:'바람 부는 날 실내에서 구수하게 즐겨요',foggy:'안개 낀 날 구수한 향이 포근하게 감싸요' },
+      mood:   { calm:'구수함이 더해져 평온함이 더 깊어져요',focused:'집중하기보다 충전이 필요한 순간이에요',energetic:'잠시 달콤하게 쉬어가요',creative:'구수한 여유에서 창의력이 싹틔워요',tired:'낮은 카페인으로 무리하지 않고 회복해요',stressed:'구수하고 따뜻한 향 자체가 힐링이에요',happy:'행복한 오후를 구수하게 마무리해요',sad:'구수하고 따뜻한 향이 외로운 마음을 채워줍니다' },
+      activity:{ reading:'독서와 함께 구수하게 즐기기 최고예요',working:'부드러운 카페인으로 편안한 업무에 어울려요',resting:'구수한 향과 함께 완전히 쉬어가요',afterExercise:'가벼운 운동 후 구수하게 회복해요',meditation:'구수한 향이 고요한 명상을 도와줍니다',afterMeal:'식후 소화를 도우며 구수하게 마무리해요',beforeSleep:'낮은 카페인으로 취침 전에도 좋아요',creative:'구수한 여유에서 아이디어가 나와요' }
+    }
+  },
+  {
+    id:'jasmine', name:'자스민차', en:'Jasmine Tea', emoji:'🌸',
+    grad:'linear-gradient(145deg,#184020 0%,#2e7040 50%,#50a862 100%)',
+    caffeine:2, cfText:'카페인 보통',
+    serve:['뜨겁게'],
+    desc:'녹차 베이스에 자스민 꽃잎이 더해진 화사한 차. 한 모금으로 봄날이 펼쳐집니다.',
+    brew:{ temp:'80°C', time:'3분', amount:'3g / 200ml' },
+    benefits:['스트레스 완화','항산화','소화 개선','기분 향상'],
+    pairing:'딤섬, 가벼운 쿠키, 화이트 초콜릿',
+    flavor:{ bitter:28,sweet:42,floral:95,earthy:20,fresh:45,citrus:15 },
+    score:{
+      weather:{ sunny:4,cloudy:4,rainy:3,snowy:2,windy:3,foggy:3 },
+      temp:   { hot:2,warm:5,cool:4,cold:2,veryCold:1 },
+      humid:  { veryDry:3,dry:4,normal:5,humid:3,veryHumid:2 },
+      mood:   { calm:4,focused:3,energetic:3,creative:5,tired:3,stressed:4,happy:5,sad:4 },
+      activity:{ reading:4,working:3,resting:4,afterExercise:1,meditation:4,afterMeal:3,beforeSleep:2,creative:5 }
+    },
+    why:{
+      weather:{ sunny:'화사한 자스민 향이 맑은 날과 완벽해요',cloudy:'흐린 날 꽃향기가 기분을 환하게 밝혀줍니다',rainy:'빗속에서 봄 꽃향기를 느껴보세요',snowy:'겨울에 봄 꽃향기를 담아보는 특별한 경험이에요',windy:'바람에 실려온 꽃향기처럼 화사합니다',foggy:'안개 속 꽃향기가 더욱 몽환적이에요' },
+      mood:   { calm:'평온한 마음에 꽃향기를 더해줘요',focused:'향긋한 집중력을 유지시켜줍니다',energetic:'화사한 에너지를 더욱 활기차게 해줘요',creative:'꽃향기가 창의적 영감을 피워줍니다',tired:'향기롭게 정신을 깨워줘요',stressed:'꽃향기가 긴장된 마음을 부드럽게 풀어줍니다',happy:'행복한 날 꽃향기를 더해 더욱 완벽해요',sad:'화사한 꽃향기가 우울한 마음을 환하게 해줍니다' },
+      activity:{ reading:'향기로운 독서 시간을 만들어줍니다',working:'기분 좋은 꽃향기와 함께 업무를 이어가요',resting:'꽃향기에 둘러싸여 여유롭게 쉬어가요',afterExercise:'운동 후엔 물을 먼저 보충해요',meditation:'꽃향기 명상으로 특별한 감각을 열어봐요',afterMeal:'식후 상쾌하게 기분을 전환시켜줍니다',beforeSleep:'카페인에 약간 주의하세요',creative:'꽃향기가 창의적 영감을 자극합니다' }
+    }
+  },
+  {
+    id:'earlgrey', name:'얼그레이', en:'Earl Grey', emoji:'🫖',
+    grad:'linear-gradient(145deg,#1a0830 0%,#3a1860 50%,#6040a0 100%)',
+    caffeine:3, cfText:'카페인 높음',
+    serve:['뜨겁게','아이스'],
+    desc:'베르가못 향이 감도는 우아한 홍차. 세련된 오후를 위한 영국식 클래식입니다.',
+    brew:{ temp:'95°C', time:'3-4분', amount:'3g / 200ml' },
+    benefits:['집중력','소화 개선','기분 향상','항산화'],
+    pairing:'레몬 케이크, 베르가못 마카롱, 피낭시에',
+    flavor:{ bitter:52,sweet:28,floral:75,earthy:42,fresh:32,citrus:65 },
+    score:{
+      weather:{ sunny:3,cloudy:4,rainy:5,snowy:4,windy:3,foggy:5 },
+      temp:   { hot:2,warm:4,cool:5,cold:4,veryCold:3 },
+      humid:  { veryDry:4,dry:4,normal:4,humid:2,veryHumid:1 },
+      mood:   { calm:3,focused:5,energetic:4,creative:5,tired:4,stressed:3,happy:4,sad:3 },
+      activity:{ reading:5,working:5,resting:3,afterExercise:1,meditation:2,afterMeal:3,beforeSleep:0,creative:5 }
+    },
+    why:{
+      weather:{ sunny:'세련된 향으로 우아한 오후를 즐겨요',cloudy:'흐린 날 베르가못 향이 기분을 고급스럽게 바꿔줍니다',rainy:'비 오는 날 영국식 홍차 한 잔, 완벽한 조합이에요',snowy:'눈 내리는 날 우아한 향이 설경과 어울려요',windy:'바람 부는 날 실내에서 세련되게 즐겨요',foggy:'안개 낀 런던의 오후, 얼그레이가 딱이에요' },
+      mood:   { calm:'우아한 여유와 함께 향을 음미해요',focused:'베르가못 향이 집중력을 높여줍니다',energetic:'세련된 에너지를 더욱 발산해요',creative:'우아한 향이 창의적 영감을 불어넣어줍니다',tired:'강한 카페인으로 확실하게 깨워줘요',stressed:'복잡한 향에 집중하다 보면 잡생각이 사라져요',happy:'행복한 오후를 더욱 우아하게 만들어줘요',sad:'세련된 향이 기분을 끌어올려줍니다' },
+      activity:{ reading:'독서와 함께라면 최고의 문학적 경험이에요',working:'집중 업무에 우아하게 활력을 줍니다',resting:'여유로운 오후를 세련되게 즐겨요',afterExercise:'운동 직후엔 물을 먼저 보충해요',meditation:'카페인이 강해 고요한 명상에는 덜 어울려요',afterMeal:'식후 소화와 기분 전환에 좋아요',beforeSleep:'취침 전엔 카페인에 주의하세요',creative:'창의적 작업에 우아한 영감을 줍니다' }
+    }
+  },
+  {
+    id:'puerh', name:'보이차', en:'Pu-erh Tea', emoji:'🍵',
+    grad:'linear-gradient(145deg,#1a1004 0%,#3c2a10 50%,#6a4c28 100%)',
+    caffeine:2, cfText:'카페인 보통',
+    serve:['뜨겁게'],
+    desc:'오래 숙성된 깊은 흙향과 복잡한 발효미. 세월이 담긴 차 한 잔의 깊이를 느껴보세요.',
+    brew:{ temp:'100°C', time:'3분', amount:'5g / 200ml' },
+    benefits:['다이어트','소화 개선','콜레스테롤 감소','혈당 조절'],
+    pairing:'진한 초콜릿, 치즈, 견과류',
+    flavor:{ bitter:52,sweet:18,floral:8,earthy:100,fresh:8,citrus:0 },
+    score:{
+      weather:{ sunny:2,cloudy:3,rainy:4,snowy:4,windy:3,foggy:4 },
+      temp:   { hot:1,warm:3,cool:5,cold:5,veryCold:4 },
+      humid:  { veryDry:4,dry:4,normal:4,humid:3,veryHumid:2 },
+      mood:   { calm:5,focused:4,energetic:2,creative:3,tired:3,stressed:4,happy:3,sad:4 },
+      activity:{ reading:5,working:3,resting:4,afterExercise:1,meditation:5,afterMeal:5,beforeSleep:1,creative:3 }
+    },
+    why:{
+      weather:{ sunny:'복잡한 맛을 천천히 음미하기 좋은 날이에요',cloudy:'흐린 날씨에 깊고 묵직한 맛이 어울립니다',rainy:'빗소리와 함께 발효의 깊은 향을 느껴보세요',snowy:'눈 내리는 날 오래 숙성된 차 한 잔이 최고예요',windy:'바람과 함께 세월의 맛을 음미해요',foggy:'안개처럼 복잡하고 깊은 향미가 잘 어울려요' },
+      mood:   { calm:'깊고 고요한 발효의 맛이 명상처럼 느껴져요',focused:'복잡한 맛에 집중하며 정신을 가다듬어요',energetic:'천천히 음미하며 에너지를 조절해요',creative:'깊은 세월의 맛에서 영감을 찾아봐요',tired:'깊은 맛이 감각을 차분하게 깨워줍니다',stressed:'복잡한 향에 집중하다 보면 마음이 고요해져요',happy:'깊은 기쁨을 더욱 풍성하게 만들어줘요',sad:'세월이 담긴 깊은 맛이 마음을 다독여줍니다' },
+      activity:{ reading:'깊은 독서와 함께 세월의 맛을 음미해요',working:'복잡한 업무에 차분한 집중력을 줍니다',resting:'깊고 여유로운 휴식과 어울려요',afterExercise:'식후 소화 개선에 집중하는 게 더 좋아요',meditation:'발효의 깊이가 명상의 깊이와 통해요',afterMeal:'식후 소화 개선에 최고의 차예요',beforeSleep:'카페인에 주의하세요',creative:'깊은 세월의 향에서 영감이 찾아와요' }
+    }
+  }
+];
+
+// ══════════════════════════════════════════════
+// 상태
+// ══════════════════════════════════════════════
+const S = { weather:null, temp:null, humid:null, mood:null, activity:null, caff:null };
+const GRP = ['weather','temp','humid','mood','activity','caff'];
+
+// ══════════════════════════════════════════════
+// 시간대 설정
+// ══════════════════════════════════════════════
+(function() {
+  const h = new Date().getHours();
+  let cls, lbl;
+  if      (h>=5  && h<12) { cls='morning';   lbl='🌅 아침'; }
+  else if (h>=12 && h<18) { cls='afternoon'; lbl='☀️ 낮'; }
+  else if (h>=18 && h<22) { cls='evening';   lbl='🌆 저녁'; }
+  else                    { cls='night';     lbl='🌙 밤'; }
+  document.body.className = cls;
+  const d = new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  document.getElementById('timeLabel').textContent = `${lbl}  ·  ${d}`;
+})();
+
+// ══════════════════════════════════════════════
+// 옵션 버튼 이벤트
+// ══════════════════════════════════════════════
+const LABEL_MAP = {
+  weather:{sunny:'☀️ 맑음',cloudy:'⛅ 흐림',rainy:'🌧️ 비',snowy:'❄️ 눈',windy:'🌬️ 바람',foggy:'🌫️ 안개'},
+  temp:{hot:'🔥 더움',warm:'🌤️ 따뜻함',cool:'🍃 선선함',cold:'🧊 추움',veryCold:'🥶 매우 추움'},
+  humid:{veryDry:'🏜️ 매우 건조',dry:'💨 건조',normal:'💧 보통',humid:'🌊 습함',veryHumid:'🫧 매우 습함'},
+  mood:{calm:'😌 평온',focused:'🎯 집중',energetic:'✨ 활기',creative:'🎨 창의적',tired:'😪 피곤',stressed:'😤 스트레스',happy:'😊 행복',sad:'😢 우울'},
+  activity:{reading:'📖 독서',working:'💼 집중 업무',resting:'🛋️ 휴식',afterExercise:'🏃 운동 후',meditation:'🧘 명상',afterMeal:'🍽️ 식사 후',beforeSleep:'🌙 취침 전',creative:'🎨 창작 활동'},
+  caff:{none:'🌿 디카페인',low:'🍃 조금만',medium:'🍵 적당히',high:'⚡ 많이'}
+};
+
+document.querySelectorAll('.opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const g = btn.dataset.g, v = btn.dataset.v;
+    const idx = GRP.indexOf(g);
+    document.querySelectorAll(`.opt[data-g="${g}"]`).forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    S[g] = v;
+    // update card style
+    document.getElementById('c'+idx).classList.add('filled');
+    document.getElementById('s'+idx).textContent = LABEL_MAP[g][v] || btn.dataset.l;
+    updateProgress();
+  });
+});
+
+function updateProgress() {
+  const filled = GRP.filter(g => S[g]).length;
+  GRP.forEach((g, i) => {
+    const dot = document.getElementById('pd'+i);
+    if (S[g]) dot.className = 'pdot done';
+    else if (i === filled) dot.className = 'pdot active';
+    else dot.className = 'pdot';
+  });
+  document.getElementById('progLabel').textContent = `${filled} / 6`;
+  const cta = document.getElementById('ctaBtn');
+  if (filled === 6) {
+    cta.disabled = false;
+    cta.textContent = '✦ 오늘의 차 추천받기';
+  } else {
+    cta.disabled = true;
+    cta.textContent = `조건을 모두 선택해 주세요 (${filled}/6)`;
+  }
+}
+
+// ══════════════════════════════════════════════
+// 추천 엔진
+// ══════════════════════════════════════════════
+const CAFF_SCORE = {
+  none:   [6, 2, -3, -6],
+  low:    [4, 6,  2, -2],
+  medium: [1, 3,  6,  4],
+  high:   [-4, 1, 4,  6]
+};
+
+function pick() {
+  const scored = TEAS.map(t => {
+    const cfBonus = S.caff ? (CAFF_SCORE[S.caff][t.caffeine] || 0) : 0;
+    return {
+      t, n: (t.score.weather[S.weather]||0) + (t.score.temp[S.temp]||0)
+           + (t.score.humid[S.humid]||0) + (t.score.mood[S.mood]||0)
+           + (t.score.activity[S.activity]||0) + cfBonus
+    };
+  }).sort((a,b) => b.n - a.n);
+  const best = scored[0].n;
+  const pool = scored.filter(x => x.n >= best-1).slice(0,2);
+  return pool[Math.floor(Math.random()*pool.length)].t;
+}
+
+// ══════════════════════════════════════════════
+// 카페인 렌더
+// ══════════════════════════════════════════════
+function cfDots(level) {
+  const labels = ['없음','낮음','보통','높음','매우높음'];
+  let dots = '';
+  for (let i=0;i<4;i++) dots += `<span class="cf-dot${i<level?' on':''}"></span>`;
+  return `<div class="cf-wrap"><span class="cf-lbl">카페인</span>${dots}<span class="cf-text">${labels[level]||''}</span></div>`;
+}
+
+// ══════════════════════════════════════════════
+// 결과 렌더
+// ══════════════════════════════════════════════
+function show() {
+  const tea = pick();
+  const wIc = {sunny:'☀️',cloudy:'⛅',rainy:'🌧️',snowy:'❄️',windy:'🌬️',foggy:'🌫️'}[S.weather];
+  const mIc = {calm:'😌',focused:'🎯',energetic:'✨',creative:'🎨',tired:'😪',stressed:'😤',happy:'😊',sad:'😢'}[S.mood];
+  const aIc = {reading:'📖',working:'💼',resting:'🛋️',afterExercise:'🏃',meditation:'🧘',afterMeal:'🍽️',beforeSleep:'🌙',creative:'🎨'}[S.activity];
+
+  const serveChips = tea.serve.map(s=>`<span class="serve-chip">${s}</span>`).join('');
+  const badges = `<span class="badge">${tea.en}</span>`;
+
+  const flavorKeys = ['bitter','sweet','floral','earthy','fresh','citrus'];
+  const flavorNames = {bitter:'쓴맛',sweet:'단맛',floral:'꽃향',earthy:'구수',fresh:'상쾌',citrus:'상큼'};
+  const flavorBars = flavorKeys.map(k => {
+    const v = tea.flavor[k];
+    return `<div class="flavor-row">
+      <span class="flavor-lbl">${flavorNames[k]}</span>
+      <div class="flavor-track"><div class="flavor-bar" data-w="${v}" style="width:0%"></div></div>
+      <span class="flavor-val">${v}</span>
+    </div>`;
+  }).join('');
+
+  const benefitTags = tea.benefits.map(b=>`<span class="b-tag">✓ ${b}</span>`).join('');
+
+  document.getElementById('result').innerHTML = `
+    <div class="container">
+      <div class="res-card">
+        <div class="res-hdr" style="background:${tea.grad}">
+          <div class="steam-wrap">
+            <div class="steam-bar"></div><div class="steam-bar"></div><div class="steam-bar"></div>
+          </div>
+          <span class="tea-emoji">${tea.emoji}</span>
+          <div class="res-badges">${badges}</div>
+          <div class="tea-kr">${tea.name}</div>
+          <div class="tea-en">${tea.en}</div>
+          <div class="tea-desc">${tea.desc}</div>
+          ${cfDots(tea.caffeine)}
+          <div class="serve-wrap">${serveChips}</div>
+        </div>
+        <div class="res-body">
+
+          <div class="sec-title">지금 이 차를 추천하는 이유</div>
+          <div class="reason-list">
+            <div class="reason-item"><span class="reason-ic">${wIc}</span><span>${tea.why.weather[S.weather]}</span></div>
+            <div class="reason-item"><span class="reason-ic">${mIc}</span><span>${tea.why.mood[S.mood]}</span></div>
+            <div class="reason-item"><span class="reason-ic">${aIc}</span><span>${tea.why.activity[S.activity]}</span></div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="sec-title">맛 프로필</div>
+          <div class="flavor-section">${flavorBars}</div>
+
+          <div class="divider"></div>
+          <div class="sec-title">우리는 방법</div>
+          <div class="brew-grid">
+            <div class="brew-item"><div class="brew-ic">🌡️</div><div class="brew-v">${tea.brew.temp}</div><div class="brew-k">물 온도</div></div>
+            <div class="brew-item"><div class="brew-ic">⏱️</div><div class="brew-v">${tea.brew.time}</div><div class="brew-k">우리는 시간</div></div>
+            <div class="brew-item"><div class="brew-ic">🥄</div><div class="brew-v">${tea.brew.amount}</div><div class="brew-k">분량</div></div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="sec-title">건강 효능</div>
+          <div class="benefits">${benefitTags}</div>
+
+          <div class="divider"></div>
+          <div class="sec-title">어울리는 음식</div>
+          <div class="pairing-box">🍽️ <strong>${tea.pairing}</strong></div>
+
+          <div class="res-actions">
+            <button class="btn-s" onclick="window._retry()">🔄 다시 추천</button>
+            <button class="btn-p" onclick="window._share('${tea.name}','${tea.en}')">📤 공유하기</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // flavor bar 애니메이션
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.flavor-bar').forEach(bar => {
+        bar.style.width = bar.dataset.w + '%';
+      });
+    });
+  });
+
+  setTimeout(() => document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'}), 80);
+}
+
+window._retry = () => show();
+window._share = (kr, en) => {
+  const txt = `오늘의 차 추천: ${kr} (${en}) 🍵\n지금 이 순간을 위한 특별한 한 잔 ☕`;
+  if (navigator.share) navigator.share({title:'오늘의 차', text:txt});
+  else navigator.clipboard.writeText(txt).then(()=>alert('클립보드에 복사됐어요! ✓'));
+};
+
+document.getElementById('ctaBtn').addEventListener('click', () => {
+  if (GRP.every(g => S[g])) show();
+});
+</script>
+</body>
+</html>
