@@ -1262,7 +1262,7 @@ window._shareInsta = async (id) => {
   ].filter(r => r.txt);
 
   // 이유 섹션 높이 계산 (이유가 있으면 추가)
-  const reasonH = reasons.length > 0 ? 80 + reasons.length * 74 : 0;
+  const reasonH = reasons.length > 0 ? 100 + reasons.length * 106 : 0;
   const W = 1080, H = 1080 + reasonH;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
@@ -1319,12 +1319,23 @@ window._shareInsta = async (id) => {
     ctx.fill();
   }
 
-  // 짧은 한 줄 소개
-  const shortDesc = tea.desc.length > 28 ? tea.desc.slice(0,28)+'…' : tea.desc;
+  // 소개 텍스트 (자동 줄바꿈, 말줄임 없음)
   ctx.font='28px "Noto Sans KR",sans-serif';
   ctx.fillStyle='rgba(255,255,255,0.6)';
   ctx.textAlign='center';
-  ctx.fillText(shortDesc, W/2, cy+540);
+  ctx.textBaseline='middle';
+  {
+    const maxW = W - 220, lineH = 42;
+    let lines = [], cur = '';
+    for (const ch of tea.desc) {
+      if (ctx.measureText(cur + ch).width > maxW) { lines.push(cur); cur = ch; }
+      else cur += ch;
+    }
+    if (cur) lines.push(cur);
+    lines = lines.slice(0, 3);
+    const startY = cy + 530 - (lines.length - 1) * lineH / 2;
+    lines.forEach((ln, i) => ctx.fillText(ln, W/2, startY + i * lineH));
+  }
 
   // 날짜
   const d = new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
@@ -1350,24 +1361,33 @@ window._shareInsta = async (id) => {
 
     // 이유 행들
     reasons.forEach((r, i) => {
-      const ry = secY + 46 + i * 74;
+      const ry = secY + 54 + i * 106;
 
       // 배경 pill
-      _roundRect(ctx, 80, ry, W-160, 60, 18);
+      _roundRect(ctx, 80, ry, W-160, 84, 22);
       ctx.fillStyle='rgba(255,255,255,0.09)'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=1; ctx.stroke();
 
       // 이모지
-      ctx.font='26px serif';
+      ctx.font='39px serif';
       ctx.textAlign='left';
       ctx.textBaseline='middle';
-      ctx.fillText(r.ic, 116, ry+30);
+      ctx.fillStyle='#fff';
+      ctx.fillText(r.ic, 116, ry+42);
 
-      // 텍스트
-      const txt = r.txt.length > 23 ? r.txt.slice(0,23)+'…' : r.txt;
-      ctx.font='26px "Noto Sans KR",sans-serif';
+      // 텍스트 (자동 줄바꿈)
+      ctx.font='39px "Noto Sans KR",sans-serif';
       ctx.fillStyle='rgba(255,255,255,0.84)';
-      ctx.fillText(txt, 164, ry+30);
+      const pillMaxW = W - 160 - 116 - 40;
+      let rLines = [], rCur = '';
+      for (const ch of r.txt) {
+        if (ctx.measureText(rCur + ch).width > pillMaxW) { rLines.push(rCur); rCur = ch; }
+        else rCur += ch;
+      }
+      if (rCur) rLines.push(rCur);
+      rLines = rLines.slice(0, 2);
+      const rStartY = ry + 42 - (rLines.length - 1) * 44 / 2;
+      rLines.forEach((ln, j) => ctx.fillText(ln, 176, rStartY + j * 44));
     });
   }
 
