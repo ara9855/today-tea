@@ -1262,7 +1262,7 @@ window._shareInsta = async (id) => {
   ].filter(r => r.txt);
 
   // 이유 섹션 높이 계산 (이유가 있으면 추가)
-  const reasonH = reasons.length > 0 ? 100 + reasons.length * 106 : 0;
+  const reasonH = reasons.length > 0 ? 110 + reasons.length * 144 : 0;
   const W = 1080, H = 1080 + reasonH;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
@@ -1361,24 +1361,24 @@ window._shareInsta = async (id) => {
 
     // 이유 행들
     reasons.forEach((r, i) => {
-      const ry = secY + 54 + i * 106;
+      const ry = secY + 54 + i * 144;
 
       // 배경 pill
-      _roundRect(ctx, 80, ry, W-160, 84, 22);
+      _roundRect(ctx, 80, ry, W-160, 118, 26);
       ctx.fillStyle='rgba(255,255,255,0.09)'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=1; ctx.stroke();
 
       // 이모지
-      ctx.font='39px serif';
+      ctx.font='56px serif';
       ctx.textAlign='left';
       ctx.textBaseline='middle';
       ctx.fillStyle='#fff';
-      ctx.fillText(r.ic, 116, ry+42);
+      ctx.fillText(r.ic, 112, ry+59);
 
       // 텍스트 (자동 줄바꿈)
-      ctx.font='39px "Noto Sans KR",sans-serif';
+      ctx.font='56px "Noto Sans KR",sans-serif';
       ctx.fillStyle='rgba(255,255,255,0.84)';
-      const pillMaxW = W - 160 - 116 - 40;
+      const pillMaxW = W - 160 - 112 - 50;
       let rLines = [], rCur = '';
       for (const ch of r.txt) {
         if (ctx.measureText(rCur + ch).width > pillMaxW) { rLines.push(rCur); rCur = ch; }
@@ -1386,8 +1386,8 @@ window._shareInsta = async (id) => {
       }
       if (rCur) rLines.push(rCur);
       rLines = rLines.slice(0, 2);
-      const rStartY = ry + 42 - (rLines.length - 1) * 44 / 2;
-      rLines.forEach((ln, j) => ctx.fillText(ln, 176, rStartY + j * 44));
+      const rStartY = ry + 59 - (rLines.length - 1) * 62 / 2;
+      rLines.forEach((ln, j) => ctx.fillText(ln, 186, rStartY + j * 62));
     });
   }
 
