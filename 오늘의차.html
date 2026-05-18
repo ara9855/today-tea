@@ -354,7 +354,8 @@
       <div class="pdot" id="pd3"></div>
       <div class="pdot" id="pd4"></div>
       <div class="pdot" id="pd5"></div>
-      <span class="prog-label" id="progLabel">0 / 6</span>
+      <div class="pdot" id="pd6"></div>
+      <span class="prog-label" id="progLabel">0 / 7</span>
     </div>
 
     <!-- 날씨 -->
@@ -456,6 +457,20 @@
         <button class="opt" data-g="caff" data-v="low" data-l="조금만"><span class="opt-ic">🍃</span>조금만</button>
         <button class="opt" data-g="caff" data-v="medium" data-l="적당히"><span class="opt-ic">🍵</span>적당히</button>
         <button class="opt" data-g="caff" data-v="high" data-l="많이"><span class="opt-ic">⚡</span>많이</button>
+      </div>
+    </div>
+
+    <!-- 마시는 방법 -->
+    <div class="card" id="c6">
+      <div class="card-hdr">
+        <span class="card-num" id="n6">7</span>
+        <span class="card-lbl">마시는 방법</span>
+        <span class="card-sel" id="s6"></span>
+      </div>
+      <div class="opts">
+        <button class="opt" data-g="serve" data-v="hot" data-l="뜨겁게"><span class="opt-ic">☕</span>뜨겁게</button>
+        <button class="opt" data-g="serve" data-v="ice" data-l="아이스"><span class="opt-ic">🧊</span>아이스</button>
+        <button class="opt" data-g="serve" data-v="any" data-l="상관없음"><span class="opt-ic">✨</span>상관없음</button>
       </div>
     </div>
 
@@ -1001,8 +1016,8 @@ const TEAS = [
 // ══════════════════════════════════════════════
 // 상태
 // ══════════════════════════════════════════════
-const S = { weather:null, temp:null, humid:null, mood:null, activity:null, caff:null };
-const GRP = ['weather','temp','humid','mood','activity','caff'];
+const S = { weather:null, temp:null, humid:null, mood:null, activity:null, caff:null, serve:null };
+const GRP = ['weather','temp','humid','mood','activity','caff','serve'];
 
 // ══════════════════════════════════════════════
 // 시간대 설정
@@ -1028,7 +1043,8 @@ const LABEL_MAP = {
   humid:{veryDry:'🏜️ 매우 건조',dry:'💨 건조',normal:'💧 보통',humid:'🌊 습함',veryHumid:'🫧 매우 습함'},
   mood:{calm:'😌 평온',focused:'🎯 집중',energetic:'✨ 활기',creative:'🎨 창의적',tired:'😪 피곤',stressed:'😤 스트레스',happy:'😊 행복',sad:'😢 우울'},
   activity:{reading:'📖 독서',working:'💼 집중 업무',resting:'🛋️ 휴식',afterExercise:'🏃 운동 후',meditation:'🧘 명상',afterMeal:'🍽️ 식사 후',beforeSleep:'🌙 취침 전',creative:'🎨 창작 활동'},
-  caff:{none:'🌿 디카페인',low:'🍃 조금만',medium:'🍵 적당히',high:'⚡ 많이'}
+  caff:{none:'🌿 디카페인',low:'🍃 조금만',medium:'🍵 적당히',high:'⚡ 많이'},
+  serve:{hot:'☕ 뜨겁게',ice:'🧊 아이스',any:'✨ 상관없음'}
 };
 
 document.querySelectorAll('.opt').forEach(btn => {
@@ -1053,14 +1069,14 @@ function updateProgress() {
     else if (i === filled) dot.className = 'pdot active';
     else dot.className = 'pdot';
   });
-  document.getElementById('progLabel').textContent = `${filled} / 6`;
+  document.getElementById('progLabel').textContent = `${filled} / 7`;
   const cta = document.getElementById('ctaBtn');
-  if (filled === 6) {
+  if (filled === 7) {
     cta.disabled = false;
     cta.textContent = '✦ 오늘의 차 추천받기';
   } else {
     cta.disabled = true;
-    cta.textContent = `조건을 모두 선택해 주세요 (${filled}/6)`;
+    cta.textContent = `조건을 모두 선택해 주세요 (${filled}/7)`;
   }
 }
 
@@ -1075,7 +1091,12 @@ const CAFF_SCORE = {
 };
 
 function pick() {
-  const scored = TEAS.map(t => {
+  // serve 필터: hot=뜨겁게만, ice=아이스 가능한 것만, any=제한없음
+  const serveKey = S.serve === 'hot' ? '뜨겁게' : S.serve === 'ice' ? '아이스' : null;
+  const pool0 = serveKey ? TEAS.filter(t => t.serve.includes(serveKey)) : TEAS;
+  const base = pool0.length > 0 ? pool0 : TEAS; // 필터 결과 없으면 전체
+
+  const scored = base.map(t => {
     const cfBonus = S.caff ? (CAFF_SCORE[S.caff][t.caffeine] || 0) : 0;
     return {
       t, n: (t.score.weather[S.weather]||0) + (t.score.temp[S.temp]||0)
