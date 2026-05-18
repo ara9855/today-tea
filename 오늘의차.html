@@ -1077,13 +1077,11 @@ const CAFF_SCORE = {
 };
 
 function recommendServe() {
-  const hot = ['cold','veryCold'];
-  const ice = ['hot','warm'];
-  if (hot.includes(S.temp) || ['rainy','snowy','foggy'].includes(S.weather))
-    return { type:'hot', label:'뜨겁게', emoji:'☕', reason:'오늘 날씨엔 따뜻하게 마시는 게 딱이에요' };
-  if (ice.includes(S.temp) || S.weather === 'sunny')
-    return { type:'ice', label:'아이스', emoji:'🧊', reason:'오늘처럼 더운 날엔 시원하게 마셔요' };
-  return { type:'both', label:'핫 or 아이스', emoji:'☕🧊', reason:'오늘은 취향대로 골라보세요' };
+  if (['cold','veryCold'].includes(S.temp) || ['rainy','snowy','foggy'].includes(S.weather))
+    return { label:'뜨겁게', emoji:'☕', reason:'오늘 날씨엔 따뜻하게 마시는 게 딱이에요' };
+  if (S.temp === 'hot')
+    return { label:'아이스', emoji:'🧊', reason:'오늘처럼 더운 날엔 시원하게 마셔요' };
+  return { label:'핫 or 아이스', emoji:'☕🧊', reason:'오늘은 취향대로 골라보세요' };
 }
 
 function pick() {
