@@ -1195,7 +1195,7 @@ function show() {
           </div>` : ''}
 
           <div class="res-actions">
-            <button class="btn-s" onclick="window._retry()">🔄 다시 추천</button>
+            <button class="btn-s" onclick="window._retry()">↩️ 다시 하기</button>
             <button class="btn-insta" onclick="window._shareInsta('${tea.id}')">📸 사진 저장</button>
             <button class="btn-p" onclick="window._share('${tea.name}','${tea.en}')">📤 공유</button>
           </div>
@@ -1215,7 +1215,24 @@ function show() {
   setTimeout(() => document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'}), 80);
 }
 
-window._retry = () => show();
+window._retry = () => {
+  // 상태 초기화
+  GRP.forEach(g => S[g] = null);
+  // 선택 버튼 초기화
+  document.querySelectorAll('.opt').forEach(b => b.classList.remove('on'));
+  // 카드 초기화
+  GRP.forEach((_, i) => {
+    document.getElementById('c'+i).classList.remove('filled');
+    const sel = document.getElementById('s'+i);
+    if (sel) sel.textContent = '';
+  });
+  // 결과 초기화
+  document.getElementById('result').innerHTML = '';
+  // 진행 상태 초기화
+  updateProgress();
+  // 첫 화면으로 스크롤
+  window.scrollTo({top:0, behavior:'smooth'});
+};
 window._share = (kr, en) => {
   const txt = `오늘의 차 추천: ${kr} (${en}) 🍵\n지금 이 순간을 위한 특별한 한 잔 ☕`;
   if (navigator.share) navigator.share({title:'오늘의 차', text:txt});
