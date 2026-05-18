@@ -282,35 +282,19 @@
     .pairing-box strong { color:var(--active); font-weight:500; }
 
     /* 액션 버튼 */
-    .res-actions { display:flex; gap:10px; }
-    .btn-s {
-      flex:1; padding:14px; border-radius:13px;
-      border:1.5px solid var(--card-b); background:var(--pill);
-      color:var(--text); font-family:'Noto Sans KR',sans-serif;
-      font-size:14px; cursor:pointer; transition:all .2s;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .btn-s:hover { background:var(--pill-h); }
-    .btn-p {
-      flex:1; padding:14px; border-radius:13px; border:none;
-      background:var(--active); color:#fff;
+    .res-actions { display:flex; gap:14px; justify-content:center; }
+    .btn-s, .btn-insta {
+      flex:1; padding:14px 8px 12px;
+      border-radius:16px; border:1.5px solid var(--card-b);
+      background:var(--pill); color:var(--text);
       font-family:'Noto Sans KR',sans-serif;
-      font-size:14px; font-weight:500; cursor:pointer;
-      transition:all .2s; -webkit-tap-highlight-color:transparent;
-      position:relative; overflow:hidden;
+      cursor:pointer; transition:all .2s;
+      -webkit-tap-highlight-color:transparent;
+      display:flex; flex-direction:column; align-items:center; gap:5px;
     }
-    .btn-p::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.15) 0%,transparent 60%); }
-    .btn-p:hover { filter:brightness(1.08); }
-
-    /* 사진 저장 버튼 */
-    .btn-insta {
-      flex:1; padding:14px; border-radius:13px; border:1.5px solid var(--card-b);
-      background:var(--pill);
-      color:var(--text); font-family:'Noto Sans KR',sans-serif;
-      font-size:14px; font-weight:500; cursor:pointer;
-      transition:all .2s; -webkit-tap-highlight-color:transparent;
-    }
-    .btn-insta:hover { background:var(--pill-h); }
+    .btn-s:hover, .btn-insta:hover { background:var(--pill-h); }
+    .btn-icon { font-size:22px; line-height:1; }
+    .btn-label { font-size:12px; font-weight:500; line-height:1; }
 
     /* 구분선 */
     .divider { height:1px; background:rgba(0,0,0,0.06); margin:0 0 18px; }
@@ -1195,9 +1179,14 @@ function show() {
           </div>` : ''}
 
           <div class="res-actions">
-            <button class="btn-s" onclick="window._retry()">↩️ 다시 하기</button>
-            <button class="btn-insta" onclick="window._shareInsta('${tea.id}')">📸 사진 저장</button>
-            <button class="btn-p" onclick="window._share('${tea.name}','${tea.en}')">📤 공유</button>
+            <button class="btn-s" onclick="window._retry()">
+              <span class="btn-icon">↩️</span>
+              <span class="btn-label">다시 하기</span>
+            </button>
+            <button class="btn-insta" onclick="window._shareInsta('${tea.id}')">
+              <span class="btn-icon">📸</span>
+              <span class="btn-label">사진 저장</span>
+            </button>
           </div>
         </div>
       </div>
