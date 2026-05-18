@@ -212,12 +212,13 @@
     .cf-text { font-size:11px; color:rgba(255,255,255,.6); margin-left:4px; }
 
     /* 서빙 방식 */
-    .serve-wrap { display:flex; gap:7px; margin-top:10px; position:relative;z-index:1; }
-    .serve-chip {
-      font-size:11px; padding:4px 11px; border-radius:20px;
-      background:rgba(255,255,255,.15); color:rgba(255,255,255,.85);
-      border:1px solid rgba(255,255,255,.25);
+    .serve-rec {
+      margin-top:12px; font-size:13px; color:rgba(255,255,255,.9);
+      background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25);
+      border-radius:20px; padding:6px 16px; display:inline-block;
+      position:relative; z-index:1;
     }
+    .serve-rec strong { font-weight:700; }
 
     /* 결과 바디 */
     .res-body {
@@ -354,8 +355,7 @@
       <div class="pdot" id="pd3"></div>
       <div class="pdot" id="pd4"></div>
       <div class="pdot" id="pd5"></div>
-      <div class="pdot" id="pd6"></div>
-      <span class="prog-label" id="progLabel">0 / 7</span>
+      <span class="prog-label" id="progLabel">0 / 6</span>
     </div>
 
     <!-- 날씨 -->
@@ -457,20 +457,6 @@
         <button class="opt" data-g="caff" data-v="low" data-l="조금만"><span class="opt-ic">🍃</span>조금만</button>
         <button class="opt" data-g="caff" data-v="medium" data-l="적당히"><span class="opt-ic">🍵</span>적당히</button>
         <button class="opt" data-g="caff" data-v="high" data-l="많이"><span class="opt-ic">⚡</span>많이</button>
-      </div>
-    </div>
-
-    <!-- 마시는 방법 -->
-    <div class="card" id="c6">
-      <div class="card-hdr">
-        <span class="card-num" id="n6">7</span>
-        <span class="card-lbl">마시는 방법</span>
-        <span class="card-sel" id="s6"></span>
-      </div>
-      <div class="opts">
-        <button class="opt" data-g="serve" data-v="hot" data-l="뜨겁게"><span class="opt-ic">☕</span>뜨겁게</button>
-        <button class="opt" data-g="serve" data-v="ice" data-l="아이스"><span class="opt-ic">🧊</span>아이스</button>
-        <button class="opt" data-g="serve" data-v="any" data-l="상관없음"><span class="opt-ic">✨</span>상관없음</button>
       </div>
     </div>
 
@@ -1016,8 +1002,8 @@ const TEAS = [
 // ══════════════════════════════════════════════
 // 상태
 // ══════════════════════════════════════════════
-const S = { weather:null, temp:null, humid:null, mood:null, activity:null, caff:null, serve:null };
-const GRP = ['weather','temp','humid','mood','activity','caff','serve'];
+const S = { weather:null, temp:null, humid:null, mood:null, activity:null, caff:null };
+const GRP = ['weather','temp','humid','mood','activity','caff'];
 
 // ══════════════════════════════════════════════
 // 시간대 설정
@@ -1069,14 +1055,14 @@ function updateProgress() {
     else if (i === filled) dot.className = 'pdot active';
     else dot.className = 'pdot';
   });
-  document.getElementById('progLabel').textContent = `${filled} / 7`;
+  document.getElementById('progLabel').textContent = `${filled} / 6`;
   const cta = document.getElementById('ctaBtn');
-  if (filled === 7) {
+  if (filled === 6) {
     cta.disabled = false;
     cta.textContent = '✦ 오늘의 차 추천받기';
   } else {
     cta.disabled = true;
-    cta.textContent = `조건을 모두 선택해 주세요 (${filled}/7)`;
+    cta.textContent = `조건을 모두 선택해 주세요 (${filled}/6)`;
   }
 }
 
@@ -1090,13 +1076,18 @@ const CAFF_SCORE = {
   high:   [-4, 1, 4,  6]
 };
 
-function pick() {
-  // serve 필터: hot=뜨겁게만, ice=아이스 가능한 것만, any=제한없음
-  const serveKey = S.serve === 'hot' ? '뜨겁게' : S.serve === 'ice' ? '아이스' : null;
-  const pool0 = serveKey ? TEAS.filter(t => t.serve.includes(serveKey)) : TEAS;
-  const base = pool0.length > 0 ? pool0 : TEAS; // 필터 결과 없으면 전체
+function recommendServe() {
+  const hot = ['cold','veryCold'];
+  const ice = ['hot','warm'];
+  if (hot.includes(S.temp) || ['rainy','snowy','foggy'].includes(S.weather))
+    return { type:'hot', label:'뜨겁게', emoji:'☕', reason:'오늘 날씨엔 따뜻하게 마시는 게 딱이에요' };
+  if (ice.includes(S.temp) || S.weather === 'sunny')
+    return { type:'ice', label:'아이스', emoji:'🧊', reason:'오늘처럼 더운 날엔 시원하게 마셔요' };
+  return { type:'both', label:'핫 or 아이스', emoji:'☕🧊', reason:'오늘은 취향대로 골라보세요' };
+}
 
-  const scored = base.map(t => {
+function pick() {
+  const scored = TEAS.map(t => {
     const cfBonus = S.caff ? (CAFF_SCORE[S.caff][t.caffeine] || 0) : 0;
     return {
       t, n: (t.score.weather[S.weather]||0) + (t.score.temp[S.temp]||0)
@@ -1128,7 +1119,7 @@ function show() {
   const mIc = {calm:'😌',focused:'🎯',energetic:'✨',creative:'🎨',tired:'😪',stressed:'😤',happy:'😊',sad:'😢'}[S.mood];
   const aIc = {reading:'📖',working:'💼',resting:'🛋️',afterExercise:'🏃',meditation:'🧘',afterMeal:'🍽️',beforeSleep:'🌙',creative:'🎨'}[S.activity];
 
-  const serveChips = tea.serve.map(s=>`<span class="serve-chip">${s}</span>`).join('');
+  const srv = recommendServe();
   const badges = `<span class="badge">${tea.en}</span>`;
 
   const flavorKeys = ['bitter','sweet','floral','earthy','fresh','citrus'];
@@ -1157,7 +1148,7 @@ function show() {
           <div class="tea-en">${tea.en}</div>
           <div class="tea-desc">${tea.desc}</div>
           ${cfDots(tea.caffeine)}
-          <div class="serve-wrap">${serveChips}</div>
+          <div class="serve-rec">${srv.emoji} <strong>${srv.label}</strong> — ${srv.reason}</div>
         </div>
         <div class="res-body">
 
