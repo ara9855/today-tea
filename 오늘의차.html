@@ -302,6 +302,18 @@
     .btn-p::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.15) 0%,transparent 60%); }
     .btn-p:hover { filter:brightness(1.08); }
 
+    /* 인스타 버튼 */
+    .btn-insta {
+      flex:1; padding:14px; border-radius:13px; border:none;
+      background:linear-gradient(135deg,#833ab4 0%,#fd1d1d 50%,#fcb045 100%);
+      color:#fff; font-family:'Noto Sans KR',sans-serif;
+      font-size:14px; font-weight:500; cursor:pointer;
+      transition:all .2s; -webkit-tap-highlight-color:transparent;
+      position:relative; overflow:hidden;
+    }
+    .btn-insta::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.15) 0%,transparent 60%); }
+    .btn-insta:hover { filter:brightness(1.1); }
+
     /* 구분선 */
     .divider { height:1px; background:rgba(0,0,0,0.06); margin:0 0 18px; }
     body.night .divider { background:rgba(255,255,255,0.08); }
@@ -1188,7 +1200,8 @@ function show() {
 
           <div class="res-actions">
             <button class="btn-s" onclick="window._retry()">🔄 다시 추천</button>
-            <button class="btn-p" onclick="window._share('${tea.name}','${tea.en}')">📤 공유하기</button>
+            <button class="btn-insta" onclick="window._shareInsta('${tea.id}')">📸 인스타</button>
+            <button class="btn-p" onclick="window._share('${tea.name}','${tea.en}')">📤 공유</button>
           </div>
         </div>
       </div>
@@ -1210,8 +1223,129 @@ window._retry = () => show();
 window._share = (kr, en) => {
   const txt = `오늘의 차 추천: ${kr} (${en}) 🍵\n지금 이 순간을 위한 특별한 한 잔 ☕`;
   if (navigator.share) navigator.share({title:'오늘의 차', text:txt});
-  else navigator.clipboard.writeText(txt).then(()=>alert('클립보드에 복사됐어요! ✓'));
+  else navigator.clipboard.writeText(txt).then(()=>_toast('클립보드에 복사됐어요! ✓'));
 };
+
+// ── 인스타 카드 공유 ───────────────────────────────────
+function _roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+function _toast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:36px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.78);color:#fff;padding:11px 22px;border-radius:24px;font-size:13px;z-index:9999;pointer-events:none;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2600);
+}
+window._shareInsta = async (id) => {
+  const tea = TEAS.find(t => t.id === id);
+  if (!tea) return;
+
+  await document.fonts.ready;
+
+  const W = 1080, H = 1080;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // 배경 그라디언트
+  const cols = (tea.grad.match(/#[0-9a-fA-F]{6}/g) || ['#2e6a2e','#4a8a4a','#6aaa6a']);
+  const bg = ctx.createLinearGradient(W*0.15, 0, W*0.85, H);
+  bg.addColorStop(0, cols[0]);
+  bg.addColorStop(0.5, cols[1] || cols[0]);
+  bg.addColorStop(1, cols[2] || cols[1] || cols[0]);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // 장식 원
+  [[W*0.88,H*0.1,300],[W*0.12,H*0.9,220],[W*0.8,H*0.78,140]].forEach(([cx,cy,r])=>{
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fill();
+  });
+
+  // 흰 카드
+  const cx=80, cy=220, cw=W-160, ch=620, cr=50;
+  _roundRect(ctx, cx, cy, cw, ch, cr);
+  ctx.fillStyle='rgba(255,255,255,0.13)'; ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.28)'; ctx.lineWidth=2; ctx.stroke();
+
+  // 이모지
+  ctx.font='160px serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(tea.emoji, W/2, cy+165);
+
+  // 한국어 이름
+  ctx.font='600 86px "Noto Serif KR",serif';
+  ctx.fillStyle='#fff';
+  ctx.fillText(tea.name, W/2, cy+310);
+
+  // 영어 이름
+  ctx.font='300 32px "Noto Sans KR",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.72)';
+  ctx.fillText(tea.en, W/2, cy+380);
+
+  // 구분선
+  ctx.strokeStyle='rgba(255,255,255,0.28)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W/2-100,cy+420); ctx.lineTo(W/2+100,cy+420); ctx.stroke();
+
+  // 카페인 점
+  ctx.font='24px "Noto Sans KR",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.55)';
+  ctx.textAlign='right';
+  ctx.fillText('카페인', W/2-30, cy+468);
+  for(let i=0;i<4;i++){
+    ctx.beginPath(); ctx.arc(W/2-8+i*30, cy+462, 9, 0, Math.PI*2);
+    ctx.fillStyle = i < tea.caffeine ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.18)';
+    ctx.fill();
+  }
+
+  // 짧은 한 줄 소개
+  const shortDesc = tea.desc.length > 28 ? tea.desc.slice(0,28)+'…' : tea.desc;
+  ctx.font='28px "Noto Sans KR",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.textAlign='center';
+  ctx.fillText(shortDesc, W/2, cy+540);
+
+  // 날짜
+  const d = new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+  ctx.font='24px "Noto Sans KR",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.42)';
+  ctx.fillText(d, W/2, cy+590);
+
+  // 상단 브랜딩
+  ctx.font='500 36px "Noto Serif KR",serif';
+  ctx.fillStyle='rgba(255,255,255,0.88)';
+  ctx.fillText('오늘의 차', W/2, 110);
+
+  // 하단 태그
+  ctx.font='26px "Noto Sans KR",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.38)';
+  ctx.fillText('#오늘의차  #teaoftheday  #차스타그램', W/2, H-55);
+
+  // 공유
+  canvas.toBlob(async blob => {
+    const file = new File([blob], `오늘의차-${tea.name}.png`, {type:'image/png'});
+    if (navigator.share && navigator.canShare?.({files:[file]})) {
+      try { await navigator.share({files:[file], title:`오늘의 차: ${tea.name}`}); }
+      catch(e) { if(e.name!=='AbortError') _dlImg(blob, tea.name); }
+    } else {
+      _dlImg(blob, tea.name);
+      _toast('📸 이미지 저장됐어요! 인스타에 올려보세요 🍵');
+    }
+  }, 'image/png');
+};
+function _dlImg(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`오늘의차-${name}.png`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
 
 document.getElementById('ctaBtn').addEventListener('click', () => {
   if (GRP.every(g => S[g])) show();
