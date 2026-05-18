@@ -517,7 +517,7 @@ const TEAS = [
       {name:'다크 초콜릿',emoji:'🍫',link:'https://www.coupang.com/np/search?q=다크초콜릿'},
       {name:'팥 아이스크림',emoji:'🍨',link:'https://www.coupang.com/np/search?q=팥아이스크림'}
     ],
-    shop:{name:'떼드영',link:'https://thedeyoung.kr/product/jeju-organic-prestige-matcha-ceremonial-grade-50g/91/'}
+    shop:null
   },
   {
     id:'chamomile', name:'카모마일', en:'Chamomile', emoji:'🌼',
@@ -575,7 +575,7 @@ const TEAS = [
       {name:'비스킷',emoji:'🍘',link:'https://www.coupang.com/np/search?q=비스킷'},
       {name:'단팥 샌드위치',emoji:'🥪',link:'https://www.coupang.com/np/search?q=단팥빵'}
     ],
-    shop:{name:'오설록',link:'https://www.osulloc.com/kr/ko/shop/item/teashop/16643'}
+    shop:null
   },
   {
     id:'oolong', name:'우롱차', en:'Oolong', emoji:'🫖',
@@ -604,7 +604,7 @@ const TEAS = [
       {name:'숙성 치즈',emoji:'🧀',link:'https://www.coupang.com/np/search?q=숙성치즈'},
       {name:'짭짤한 크래커',emoji:'🫙',link:'https://www.coupang.com/np/search?q=크래커'}
     ],
-    shop:{name:'부부티하우스',link:'https://bubuteahouse.imweb.me/1115'}
+    shop:null
   },
   {
     id:'black', name:'홍차', en:'Black Tea', emoji:'☕',
@@ -865,7 +865,7 @@ const TEAS = [
       {name:'검은깨 찰떡',emoji:'🖤',link:'https://www.coupang.com/np/search?q=검은깨찰떡'},
       {name:'팥 빵',emoji:'🥐',link:'https://www.coupang.com/np/search?q=팥빵'}
     ],
-    shop:{name:'맥파이앤타이거',link:'https://magpie-and-tiger.com/product/%ED%98%B8%EC%A7%80%EC%B0%A8-30g/179/'}
+    shop:null
   },
   {
     id:'jasmine', name:'자스민차', en:'Jasmine Tea', emoji:'🌸',
@@ -1185,7 +1185,6 @@ function show() {
             ${tea.tifood.map(f=>`<div class="tifood-item">
               <span class="tifood-emoji">${f.emoji}</span>
               <span class="tifood-name">${f.name}</span>
-              <a class="tifood-link" href="${f.link}" target="_blank" rel="noopener">구매</a>
             </div>`).join('')}
           </div>
 
