@@ -1262,7 +1262,19 @@ window._shareInsta = async (id) => {
 
   await document.fonts.ready;
 
-  const W = 1080, H = 1080;
+  // 추천 이유 아이콘·텍스트 수집
+  const wIc = {sunny:'☀️',cloudy:'⛅',rainy:'🌧️',snowy:'❄️',windy:'🌬️',foggy:'🌫️'}[S.weather]||'';
+  const mIc = {calm:'😌',focused:'🎯',energetic:'✨',creative:'🎨',tired:'😪',stressed:'😤',happy:'😊',sad:'😢'}[S.mood]||'';
+  const aIc = {reading:'📖',working:'💼',resting:'🛋️',afterExercise:'🏃',meditation:'🧘',afterMeal:'🍽️',beforeSleep:'🌙',creative:'🎨'}[S.activity]||'';
+  const reasons = [
+    { ic: wIc, txt: tea.why?.weather?.[S.weather] },
+    { ic: mIc, txt: tea.why?.mood?.[S.mood] },
+    { ic: aIc, txt: tea.why?.activity?.[S.activity] }
+  ].filter(r => r.txt);
+
+  // 이유 섹션 높이 계산 (이유가 있으면 추가)
+  const reasonH = reasons.length > 0 ? 80 + reasons.length * 74 : 0;
+  const W = 1080, H = 1080 + reasonH;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -1277,8 +1289,8 @@ window._shareInsta = async (id) => {
   ctx.fillRect(0, 0, W, H);
 
   // 장식 원
-  [[W*0.88,H*0.1,300],[W*0.12,H*0.9,220],[W*0.8,H*0.78,140]].forEach(([cx,cy,r])=>{
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  [[W*0.88,H*0.1,300],[W*0.12,H*0.9,220],[W*0.8,H*0.78,140]].forEach(([dcx,dcy,r])=>{
+    ctx.beginPath(); ctx.arc(dcx,dcy,r,0,Math.PI*2);
     ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fill();
   });
 
@@ -1336,10 +1348,46 @@ window._shareInsta = async (id) => {
   ctx.fillStyle='rgba(255,255,255,0.88)';
   ctx.fillText('오늘의 차', W/2, 110);
 
+  // 추천 이유 섹션
+  if (reasons.length > 0) {
+    const secY = cy + ch + 52;
+
+    // 섹션 제목
+    ctx.font='500 26px "Noto Sans KR",sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText('지금 이 차를 추천하는 이유', W/2, secY);
+
+    // 이유 행들
+    reasons.forEach((r, i) => {
+      const ry = secY + 46 + i * 74;
+
+      // 배경 pill
+      _roundRect(ctx, 80, ry, W-160, 60, 18);
+      ctx.fillStyle='rgba(255,255,255,0.09)'; ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=1; ctx.stroke();
+
+      // 이모지
+      ctx.font='26px serif';
+      ctx.textAlign='left';
+      ctx.textBaseline='middle';
+      ctx.fillText(r.ic, 116, ry+30);
+
+      // 텍스트
+      const txt = r.txt.length > 23 ? r.txt.slice(0,23)+'…' : r.txt;
+      ctx.font='26px "Noto Sans KR",sans-serif';
+      ctx.fillStyle='rgba(255,255,255,0.84)';
+      ctx.fillText(txt, 164, ry+30);
+    });
+  }
+
   // 하단 태그
   ctx.font='26px "Noto Sans KR",sans-serif';
   ctx.fillStyle='rgba(255,255,255,0.38)';
-  ctx.fillText('#오늘의차  #teaoftheday  #차스타그램', W/2, H-55);
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText('#오늘의차  #teaoftheday  #차스타그램', W/2, H-50);
 
   // 공유
   canvas.toBlob(async blob => {
