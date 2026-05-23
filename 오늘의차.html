@@ -335,6 +335,26 @@
     .shop-btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
     .shop-brand { font-size:11px; opacity:.65; font-weight:300; margin-left:2px; }
 
+    /* 브랜드 추천 섹션 */
+    .brands-section { margin-bottom:20px; }
+    .brands-list { display:flex; flex-direction:column; gap:10px; }
+    .brand-row {
+      display:flex; align-items:center; gap:12px;
+      padding:13px 16px; border-radius:14px;
+      background:var(--pill); border:1.5px solid var(--card-b);
+      text-decoration:none; color:var(--text);
+      transition:background .2s, transform .15s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .brand-row:hover { background:var(--pill-h); transform:translateX(3px); }
+    .brand-tag {
+      font-size:11px; font-weight:600; padding:3px 9px;
+      border-radius:20px; background:var(--active);
+      color:#fff; white-space:nowrap; flex-shrink:0;
+    }
+    .brand-name { font-size:14px; font-weight:500; flex:1; }
+    .brand-arrow { font-size:13px; opacity:.4; flex-shrink:0; }
+
     /* 푸터 */
     .footer { text-align:center; padding:36px 18px 0; font-size:12px; font-weight:300; color:var(--sub); opacity:.55; }
   </style>
@@ -503,6 +523,7 @@ const TEAS = [
       {name:'팥 아이스크림',emoji:'🍨',link:'https://www.coupang.com/np/search?q=팥아이스크림'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'chamomile', name:'카모마일', en:'Chamomile', emoji:'🌼',
@@ -532,6 +553,7 @@ const TEAS = [
       {name:'마들렌',emoji:'🧁',link:'https://www.coupang.com/np/search?q=마들렌'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'green', name:'녹차', en:'Green Tea', emoji:'🍃',
@@ -561,6 +583,7 @@ const TEAS = [
       {name:'단팥 샌드위치',emoji:'🥪',link:'https://www.coupang.com/np/search?q=단팥빵'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'oolong', name:'우롱차', en:'Oolong', emoji:'🫖',
@@ -590,6 +613,7 @@ const TEAS = [
       {name:'짭짤한 크래커',emoji:'🫙',link:'https://www.coupang.com/np/search?q=크래커'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'black', name:'홍차', en:'Black Tea', emoji:'☕',
@@ -619,6 +643,7 @@ const TEAS = [
       {name:'밀크 캐러멜',emoji:'🍮',link:'https://www.coupang.com/np/search?q=밀크캐러멜'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'peppermint', name:'페퍼민트', en:'Peppermint', emoji:'🌿',
@@ -648,6 +673,7 @@ const TEAS = [
       {name:'과일 타르트',emoji:'🍓',link:'https://www.coupang.com/np/search?q=과일타르트'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'ginger', name:'생강차', en:'Ginger Tea', emoji:'🫚',
@@ -677,6 +703,7 @@ const TEAS = [
       {name:'호두과자',emoji:'🥮',link:'https://www.coupang.com/np/search?q=호두과자'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'yuzu', name:'유자차', en:'Yuzu Tea', emoji:'🍋',
@@ -706,6 +733,7 @@ const TEAS = [
       {name:'유자 젤리',emoji:'🍋',link:'https://www.coupang.com/np/search?q=유자젤리'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'hibiscus', name:'히비스커스', en:'Hibiscus', emoji:'🌺',
@@ -735,6 +763,7 @@ const TEAS = [
       {name:'과일 젤리',emoji:'🍓',link:'https://www.coupang.com/np/search?q=과일젤리'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'lavender', name:'라벤더', en:'Lavender', emoji:'💜',
@@ -764,6 +793,7 @@ const TEAS = [
       {name:'라벤더 마카롱',emoji:'💜',link:'https://www.coupang.com/np/search?q=라벤더마카롱'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'white', name:'백차', en:'White Tea', emoji:'🌸',
@@ -793,6 +823,7 @@ const TEAS = [
       {name:'가벼운 샌드위치',emoji:'🥪',link:'https://www.coupang.com/np/search?q=샌드위치'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'rooibos', name:'루이보스', en:'Rooibos', emoji:'🍂',
@@ -822,6 +853,7 @@ const TEAS = [
       {name:'바닐라 비스킷',emoji:'🍘',link:'https://www.coupang.com/np/search?q=바닐라비스킷'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'hojicha', name:'호지차', en:'Hojicha', emoji:'🫖',
@@ -851,6 +883,7 @@ const TEAS = [
       {name:'팥 빵',emoji:'🥐',link:'https://www.coupang.com/np/search?q=팥빵'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'jasmine', name:'자스민차', en:'Jasmine Tea', emoji:'🌸',
@@ -880,6 +913,7 @@ const TEAS = [
       {name:'화이트 초콜릿',emoji:'🍫',link:'https://www.coupang.com/np/search?q=화이트초콜릿'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'earlgrey', name:'얼그레이', en:'Earl Grey', emoji:'🫖',
@@ -909,6 +943,7 @@ const TEAS = [
       {name:'베르가못 마카롱',emoji:'🟣',link:'https://www.coupang.com/np/search?q=마카롱'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'puerh', name:'보이차', en:'Pu-erh Tea', emoji:'🍵',
@@ -938,6 +973,7 @@ const TEAS = [
       {name:'호두',emoji:'🌰',link:'https://www.coupang.com/np/search?q=호두'}
     ],
     shop:null
+    brands:null
   },
   {
     id:'ssuk', name:'쑥차', en:'Mugwort Tea', emoji:'🌿',
@@ -967,6 +1003,7 @@ const TEAS = [
       {name:'단팥빵',emoji:'🥐',link:'https://www.coupang.com/np/search?q=단팥빵'}
     ],
     shop:{name:'맥파이앤타이거',link:'https://magpie-and-tiger.com/product/%EC%9D%B4%EB%A5%B8-%EB%B4%84-%EC%91%A5%EC%B0%A8-30g-%EB%85%BC%EC%B9%B4%ED%8E%98%EC%9D%B8/52/'}
+    brands:null
   },
   {
     id:'maehwa', name:'매화차', en:'Plum Blossom Tea', emoji:'🌸',
@@ -996,6 +1033,7 @@ const TEAS = [
       {name:'플라워 쿠키',emoji:'🍪',link:'https://www.coupang.com/np/search?q=플라워쿠키'}
     ],
     shop:{name:'쌍계명차',link:'https://sktea.com/category/%EB%A7%A4%ED%99%94%EC%B0%A8/94/'}
+    brands:null
   }
 ];
 
@@ -1181,6 +1219,29 @@ function show() {
               <span class="tifood-name">${f.name}</span>
             </div>`).join('')}
           </div>
+
+          ${tea.brands ? `
+          <div class="divider"></div>
+          <div class="sec-title">🏪 이 차, 어디서 살까?</div>
+          <div class="brands-section">
+            <div class="brands-list">
+              ${tea.brands.value ? `<a class="brand-row" href="${tea.brands.value.link}" target="_blank" rel="noopener">
+                <span class="brand-tag">💰 가성비</span>
+                <span class="brand-name">${tea.brands.value.name}</span>
+                <span class="brand-arrow">›</span>
+              </a>` : ''}
+              ${tea.brands.quality ? `<a class="brand-row" href="${tea.brands.quality.link}" target="_blank" rel="noopener">
+                <span class="brand-tag">⭐ 퀄리티</span>
+                <span class="brand-name">${tea.brands.quality.name}</span>
+                <span class="brand-arrow">›</span>
+              </a>` : ''}
+              ${tea.brands.online ? `<a class="brand-row" href="${tea.brands.online.link}" target="_blank" rel="noopener">
+                <span class="brand-tag">🛒 온라인</span>
+                <span class="brand-name">${tea.brands.online.name}</span>
+                <span class="brand-arrow">›</span>
+              </a>` : ''}
+            </div>
+          </div>` : ''}
 
           ${tea.shop ? `<div class="shop-wrap">
             <a class="shop-btn" href="${tea.shop.link}" target="_blank" rel="noopener">
